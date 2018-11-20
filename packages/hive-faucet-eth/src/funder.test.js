@@ -63,7 +63,8 @@ describe("methods", () => {
       const promises = accounts.map(acc =>
         funder.fund(acc.address, amountToFund)
       );
-      const resolvedPromises = await Promise.all(promises);
+
+      await Promise.all(promises);
 
       const balancesAfterPromises = accounts.map(acc =>
         web3.eth.getBalance(acc.address)

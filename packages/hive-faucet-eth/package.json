@@ -4,12 +4,9 @@
   "description": "",
   "main": "dist/server.js",
   "scripts": {
-    "watch-ts": "tsc -w",
-    "watch-node": "nodemon dist/server.js",
-    "watch": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch-ts\" \"npm run watch-node\"",
-    "lint": "tslint -c tslint.json -p tsconfig.json",
-    "clean": "rm -rf ./dist/",
-    "test": "yarn clean && tsc && jest --maxWorkers=1 --forceExit",
+    "lint": "eslint . --ext .js --max-warnings 0",
+    "lint:fix": "eslint . --ext .js --fix",
+    "test": "jest --maxWorkers=1 --forceExit",
     "test:watch": "jest --watch",
     "network": "ganache-cli -b 5 -m \"deputy apology card solution wage spot tray choice thing hollow peanut matrix\""
   },
