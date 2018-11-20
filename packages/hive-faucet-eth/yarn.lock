@@ -2385,6 +2385,19 @@ hash.js@^1.0.0, hash.js@^1.0.3:
     inherits "^2.0.3"
     minimalistic-assert "^1.0.1"
 
+hive-grpc@^0.0.1:
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/hive-grpc/-/hive-grpc-0.0.1.tgz#bf56dea1d7a7fd6e15750eb7eaa9528dfe08ee48"
+  integrity sha512-7JPaxgHv3+jfr0JjFUDDH9ouTmzCaSm/LLeO8y2n3wOy0ec1oOYwpyTnrwOoabrGrGquCTqkstmbGuDCD4XH2g==
+  dependencies:
+    "@grpc/proto-loader" "^0.3.0"
+    "@types/web3" "^1.0.12"
+    await-semaphore "^0.1.3"
+    bn.js "^4.11.8"
+    grpc "^1.16.0"
+    lodash "^4.17.11"
+    web3 "^1.0.0-beta.36"
+
 hmac-drbg@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/hmac-drbg/-/hmac-drbg-1.0.1.tgz#d2745701025a6c775a6c545793ed502fc0c649a1"

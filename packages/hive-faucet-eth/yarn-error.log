@@ -1,5 +1,5 @@
 Arguments: 
-  /Users/raymondyeh/.nvm/versions/node/v10.11.0/bin/node /usr/local/Cellar/yarn/1.10.1/libexec/bin/yarn.js
+  /Users/raymondyeh/.nvm/versions/node/v10.11.0/bin/node /usr/local/Cellar/yarn/1.10.1/libexec/bin/yarn.js add @types/hive-grpc
 
 PATH: 
   /Users/raymondyeh/.cargo/bin:/Users/raymondyeh/.nvm/versions/node/v10.11.0/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/X11/bin:/opt/metasploit-framework/bin:/opt/metasploit-framework/bin
@@ -14,7 +14,7 @@ Platform:
   darwin x64
 
 Trace: 
-  Error: https://registry.yarnpkg.com/hive-grpc: Not found
+  Error: https://registry.yarnpkg.com/@types%2fhive-grpc: Not found
       at Request.params.callback [as _callback] (/usr/local/Cellar/yarn/1.10.1/libexec/lib/cli.js:61073:18)
       at Request.self.callback (/usr/local/Cellar/yarn/1.10.1/libexec/lib/cli.js:120166:22)
       at Request.emit (events.js:182:13)
@@ -29,7 +29,7 @@ Trace:
 npm manifest: 
   {
     "name": "hive-faucet-eth",
-    "version": "1.0.0",
+    "version": "0.0.1",
     "description": "",
     "main": "dist/server.js",
     "scripts": {
@@ -50,7 +50,7 @@ npm manifest:
       "await-semaphore": "^0.1.3",
       "bn.js": "^4.11.8",
       "grpc": "^1.16.0",
-      "hive-grpc": "^1.0.0",
+      "hive-grpc": "^0.0.1",
       "lodash": "^4.17.11",
       "web3": "^1.0.0-beta.36"
     },
@@ -2458,6 +2458,19 @@ Lockfile:
     dependencies:
       inherits "^2.0.3"
       minimalistic-assert "^1.0.1"
+  
+  hive-grpc@^0.0.1:
+    version "0.0.1"
+    resolved "https://registry.yarnpkg.com/hive-grpc/-/hive-grpc-0.0.1.tgz#bf56dea1d7a7fd6e15750eb7eaa9528dfe08ee48"
+    integrity sha512-7JPaxgHv3+jfr0JjFUDDH9ouTmzCaSm/LLeO8y2n3wOy0ec1oOYwpyTnrwOoabrGrGquCTqkstmbGuDCD4XH2g==
+    dependencies:
+      "@grpc/proto-loader" "^0.3.0"
+      "@types/web3" "^1.0.12"
+      await-semaphore "^0.1.3"
+      bn.js "^4.11.8"
+      grpc "^1.16.0"
+      lodash "^4.17.11"
+      web3 "^1.0.0-beta.36"
   
   hmac-drbg@^1.0.0:
     version "1.0.1"

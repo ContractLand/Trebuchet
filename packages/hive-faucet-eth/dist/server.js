@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const hive_grpc_1 = require("hive-grpc");
 const funder_1 = require("./funder");
-const PROTO_PATH = __dirname + '/../faucet.proto';
 const DEFAULT_GRPC_URL = "0.0.0.0:50051";
 const DEFAULT_ETH_RPC_URL = "ws://localhost:8545";
 const Server = (config) => {

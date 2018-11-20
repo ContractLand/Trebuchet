@@ -12,8 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const server_1 = __importDefault(require("./server"));
-const utils_1 = require("./utils");
-const PROTO_PATH = __dirname + "/../faucet.proto";
+const hive_grpc_1 = require("hive-grpc");
 const GRPC_URL = "localhost:50051";
 const FUNDING_ACCOUNT_PRIVATE = "0x678ae9837e83a4b356c01b741e36a9d4ef3ac916a843e8ae7d37b9dd2045f963";
 describe("server", () => {
@@ -24,7 +23,8 @@ describe("server", () => {
             grpcUrl: GRPC_URL,
             faucetPrivateKey: FUNDING_ACCOUNT_PRIVATE
         });
-        client = utils_1.Client(PROTO_PATH, GRPC_URL);
+        client = hive_grpc_1.FaucetClient(GRPC_URL);
+        console.log(client);
     });
     afterAll(() => __awaiter(this, void 0, void 0, function* () {
         // GRPC has a problem with shutting down, therefore requiring --forceExit on jest.

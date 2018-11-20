@@ -1,8 +1,7 @@
 import grpc from 'grpc';
 import FaucetServer from "./server";
-import { Client } from "./utils";
+import {FaucetClient} from "hive-grpc";
 
-const PROTO_PATH = __dirname + "/../faucet.proto";
 const GRPC_URL = "localhost:50051";
 const FUNDING_ACCOUNT_PRIVATE =
   "0x678ae9837e83a4b356c01b741e36a9d4ef3ac916a843e8ae7d37b9dd2045f963";
@@ -16,7 +15,7 @@ describe("server", () => {
       grpcUrl: GRPC_URL,
       faucetPrivateKey: FUNDING_ACCOUNT_PRIVATE
     });
-    client = Client(PROTO_PATH, GRPC_URL);
+    client = FaucetClient(GRPC_URL);
   });
 
   afterAll(async () => {

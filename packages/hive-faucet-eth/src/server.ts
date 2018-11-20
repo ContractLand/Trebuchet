@@ -8,8 +8,6 @@ interface FaucetServerConfig {
   faucetPrivateKey: string;
 }
 
-const PROTO_PATH = __dirname + '/../faucet.proto';
-
 const DEFAULT_GRPC_URL = "0.0.0.0:50051";
 const DEFAULT_ETH_RPC_URL = "ws://localhost:8545"
 

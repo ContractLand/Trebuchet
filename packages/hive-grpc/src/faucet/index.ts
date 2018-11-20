@@ -2,7 +2,7 @@ import grpc from 'grpc';
 import {join} from "path";
 import {Client, Server} from "../utils";
 
-export const PROTO_PATH = join(__dirname, 'faucet.proto');
+export const PROTO_PATH = join(__dirname, '../../proto/faucet/faucet.proto');
 export const DEFAULT_GRPC_URL = "0.0.0.0:50051";
 
 export const FaucetServer = (controllers: any, url: string = DEFAULT_GRPC_URL): grpc.Server => {
