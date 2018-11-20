@@ -1,7 +1,7 @@
 const { join } = require("path");
 const { Client, Server } = require("../utils");
 
-const PROTO_PATH = join(__dirname, "../../proto/faucet/faucet.proto");
+const PROTO_PATH = join(__dirname, "faucet.proto");
 const DEFAULT_GRPC_URL = "0.0.0.0:50051";
 
 const FaucetServer = (controllers, url) => {
