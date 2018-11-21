@@ -7,7 +7,7 @@
     "lint": "eslint . --ext .js --max-warnings 0",
     "lint:fix": "eslint . --ext .js --fix",
     "test": "jest --maxWorkers=1 --forceExit",
-    "test:watch": "jest --watch --maxWorkers=1 --forceExit",
+    "test:watch": "jest --watch --maxWorkers=1 --forceExit --verbose",
     "network": "ganache-cli -b 5 -m \"deputy apology card solution wage spot tray choice thing hollow peanut matrix\""
   },
   "author": "",

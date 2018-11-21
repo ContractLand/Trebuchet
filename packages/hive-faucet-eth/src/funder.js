@@ -1,6 +1,8 @@
 const Web3 = require("web3");
 const { Mutex } = require("await-semaphore");
 
+const { toHex } = Web3.utils;
+
 class Funder {
   constructor({ rpc, fundingAccount }) {
     this.rpc = rpc;
@@ -19,6 +21,14 @@ class Funder {
     return this.nonce;
   }
 
+  /**
+   * Sends fund to the account
+   * Warning: There is some problem when sending amount greater than the balance of the account.
+   * The problem could be a ganache issue, need further analysis
+   * Todo: Can use smart contract to aggregate transactions
+   * @param  {string} account - Address to fund to
+   * @param  {number, string} amount - Amount of wei to send
+   */
   async fund(account, amount) {
     let txPromise;
     await this.mutex.use(async () => {
@@ -30,7 +40,7 @@ class Funder {
         gas: 21000,
         to: account,
         from: this.account.address,
-        value: amount,
+        value: toHex(amount),
         nonce: nonceToUse
       };
       const signedTx = await this.account.signTransaction(tx);

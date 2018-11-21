@@ -12,7 +12,7 @@ describe("VU", () => {
   let vu;
   let server;
 
-  const newAddress = () => web3.eth.accounts.create().address;
+  const newPrivateKey = () => web3.eth.accounts.create().privateKey;
 
   beforeAll(() => {
     web3 = new Web3(RPC_URL);
@@ -34,29 +34,33 @@ describe("VU", () => {
 
   beforeEach(() => {
     vu = new VU({
-      address: newAddress()
+      privateKey: newPrivateKey()
     });
   });
 
-  test("getFund", async () => {
-    const fund = 100;
-    const initialBalance = await vu.getBalance();
-    const faucetRes = await vu.getFund(fund);
-    const finalBalance = await vu.getBalance();
+  describe("requestFund", () => {
+    test("should fund VU with funds", async () => {
+      const fund = "100";
+      const finalBalance = await vu.requestFund(fund);
 
-    expect(faucetRes.success).toBe.true;
-    expect(finalBalance - initialBalance).toEqual(fund);
+      expect(finalBalance).toEqual(fund);
+    });
   });
+  describe("requestMinFund", () => {
+    test("should fund VU with funds", async () => {
+      const intermediateBal = await vu.requestMinFund(500);
+      const finalBalance = await vu.requestMinFund(600);
 
-  test("getMinFund", async () => {
-    const initialBalance = await vu.getBalance();
-    const faucetRes = await vu.getMinFund(500);
-    const intermediateBal = await vu.getBalance();
-    const faucetRes2 = await vu.getMinFund(600);
-    const finalBalance = await vu.getBalance();
+      expect(intermediateBal).toEqual("500");
+      expect(finalBalance).toEqual("600");
+    });
+    test("should not fund when fund is greater than or equal to VU's balance", async () => {
+      await vu.requestFund(500);
+      const intermediateBalance = await vu.requestMinFund(400);
+      const finalBalance = await vu.requestMinFund(500);
 
-    expect(intermediateBal - initialBalance).toEqual(500);
-    expect(finalBalance - intermediateBal).toEqual(100);
-    expect(finalBalance).toEqual("600");
+      expect(intermediateBalance).toEqual("500");
+      expect(finalBalance).toEqual("500");
+    });
   });
 });
