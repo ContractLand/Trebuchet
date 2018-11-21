@@ -6,14 +6,17 @@ const GRPC_URL = "localhost:50051";
 
 const { toBN } = Web3.utils;
 class VirtualUserEth {
-  constructor({ privateKey, index, peers }) {
-    this.index = index;
+  constructor({ privateKey, peers }) {
     this.peers = peers;
     this.privateKey = privateKey;
     this.faucetclient = FaucetClient(GRPC_URL);
     this.web3 = new Web3(RPC_URL);
     this.account = this.web3.eth.accounts.privateKeyToAccount(privateKey);
     this.address = this.account.address;
+  }
+
+  async getNonce() {
+    return this.web3.eth.getTransactionCount(this.address, "pending");
   }
 
   async getBalance() {
@@ -50,6 +53,15 @@ class VirtualUserEth {
       return balance;
     }
     return this.requestFund(amountToFund);
+  }
+
+  async signTransaction(tx) {
+    return this.account.signTransaction(tx);
+  }
+
+  async signAndSendTransaction(tx) {
+    const signedTx = await this.signTransaction(tx);
+    return this.web3.eth.sendSignedTransaction(signedTx.rawTransaction);
   }
 }
 
