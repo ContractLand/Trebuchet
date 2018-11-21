@@ -1,6 +1,6 @@
 const FaucetServer = require("hive-faucet-eth");
 const Web3 = require("web3");
-const VU = require("./index");
+const VU = require("./vu");
 
 const RPC_URL = "http://localhost:8545";
 const GRPC_URL = "localhost:50051";
@@ -82,7 +82,6 @@ describe("VU", () => {
       };
       await vu.signAndSendTransaction(tx);
       const receiverBalance = await web3.eth.getBalance(receiver);
-
       expect(receiverBalance).toEqual(toWei("0.01", "ether"));
     });
   });
