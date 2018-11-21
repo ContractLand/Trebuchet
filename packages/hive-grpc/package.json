@@ -1,6 +1,6 @@
 {
   "name": "hive-grpc",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "",
   "main": "src/index.js",
   "scripts": {
@@ -27,9 +27,9 @@
     "eslint-plugin-mocha": "^5.2.0",
     "eslint-plugin-prettier": "^2.6.2",
     "mocha": "^5.2.0",
+    "nodemon": "^1.18.5",
     "nyc": "^13.0.1",
     "prettier": "^1.14.2",
-    "nodemon": "^1.18.5",
     "serverless-offline": "^3.25.11"
   }
 }
