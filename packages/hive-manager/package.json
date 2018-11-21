@@ -1,14 +1,14 @@
 {
-  "name": "hive-faucet-eth",
-  "version": "0.0.2",
+  "name": "hive-manager",
+  "version": "0.0.1",
   "description": "",
-  "main": "src/server.js",
+  "main": "src/index.js",
   "scripts": {
     "lint": "eslint . --ext .js --max-warnings 0",
     "lint:fix": "eslint . --ext .js --fix",
-    "test": "jest --maxWorkers=1 --forceExit",
-    "test:watch": "jest --watch",
-    "network": "ganache-cli -b 2 -m \"deputy apology card solution wage spot tray choice thing hollow peanut matrix\""
+    "test": "nodemon --watch src src/manager.test.js",
+    "test:watch": "jest --watch --forceExit --verbose",
+    "network": "ganache-cli -b 5 -m \"deputy apology card solution wage spot tray choice thing hollow peanut matrix\""
   },
   "author": "",
   "license": "ISC",
@@ -16,8 +16,11 @@
     "@grpc/proto-loader": "^0.3.0",
     "await-semaphore": "^0.1.3",
     "bn.js": "^4.11.8",
+    "bottleneck": "^2.13.0",
     "grpc": "^1.16.0",
+    "hive-faucet-eth": "^0.0.2",
     "hive-grpc": "^0.0.2",
+    "hive-vu-eth": "^0.0.2",
     "jest": "^23.6.0",
     "lodash": "^4.17.11",
     "web3": "^1.0.0-beta.36"
