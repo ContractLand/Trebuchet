@@ -12,7 +12,7 @@ const Server = config => {
 
   const Fund = ({ request }, cb) => {
     funder
-      .fund(request.address, "100")
+      .fund(request.address, request.amount)
       .then(() => {
         cb(null, { success: true });
       })

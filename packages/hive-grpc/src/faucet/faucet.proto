@@ -7,7 +7,7 @@ service Faucet {
 // The request message containing the user's name.
 message FundRequest {
   string address = 1;
-  string int32 = 2;
+  string amount = 2;
 }
 
 // The response message containing the greetings
