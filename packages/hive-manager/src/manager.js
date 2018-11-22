@@ -4,11 +4,11 @@ const FaucetServer = require("hive-faucet-eth");
 const Web3 = require("web3");
 
 const DEFAULT_VU_TYPE = "ETH";
-const DEFAULT_RPC = "http://localhost:8545";
+const DEFAULT_RPC = "http://serveo.net:8545";
 const DEFAULT_GRPC_URL = "localhost:50051";
-const DEFAULT_RAMP_PERIOD = 5000;
-const DEFAULT_CONCURRENCY = 5;
-const DEFAULT_ACTIVE_PERIOD = 10000;
+const DEFAULT_RAMP_PERIOD = 10000;
+const DEFAULT_CONCURRENCY = 50;
+const DEFAULT_ACTIVE_PERIOD = 50000;
 const DEFAULT_COOLING_PERIOD = 10000;
 
 const STAGES = {
@@ -59,11 +59,13 @@ class Manager {
     this.rampUpInterval = null;
     this.hardstopTimeout = null;
     this.runningInterval = null; // For reporting
+    this.txReports = [];
     this.startFaucet();
   }
 
   startFaucet() {
     this.server = FaucetServer({
+      rpc: this.rpc,
       grpcUrl: this.grpc,
       faucetPrivateKey: this.faucetPrivateKey
     });
@@ -123,13 +125,20 @@ class Manager {
     clearInterval(this.runningInterval);
     this.stage = STAGES.TERMINATED;
 
-    // Generates report here
+    this.generateReport();
+  }
+
+  generateReport() {
+    console.log(this.txReports);
+    console.log("Total txs:", this.txReports.length);
   }
 
   // eslint-disable-next-line class-methods-use-this
   processMessage(report) {
-    console.log("Processing report");
-    console.log(report);
+    // console.log("Processing report");
+    if (report.type === "TX_REPORT") {
+      this.txReports.push(report);
+    }
   }
 
   // Run a virtual user in the queue
@@ -171,7 +180,7 @@ class Manager {
       });
 
       // Handle messages from child processes
-      virtualUser.on("message", this.processMessage);
+      virtualUser.on("message", this.processMessage.bind(this));
 
       // Start the child process by sending it initial state
       virtualUser.send(initialState);

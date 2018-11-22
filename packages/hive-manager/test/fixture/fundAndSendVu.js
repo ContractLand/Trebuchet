@@ -4,11 +4,11 @@ class Actor extends VU {
   // eslint-disable-next-line class-methods-use-this
 
   async start() {
+    console.log("LOADED");
     // Request for some ether from the faucet
-    console.log("Requesting funds");
     await this.requestMinFund(this.toWei("0.01", "ether"));
+    console.log("LOADED2");
 
-    console.log("Transfering funds");
     let nonce = await this.getNonce();
     const tx = {
       to: "0x3c7539cd57b7e03f722c3aeb636247188b25dcc4",
@@ -18,21 +18,18 @@ class Actor extends VU {
     };
     await this.signAndSendTransaction(tx);
 
-    console.log("Transfering funds");
     nonce += 1;
+
     await this.signAndSendTransaction({
       ...tx,
       nonce
     });
 
-    console.log("Transfering funds");
     nonce += 1;
     await this.signAndSendTransaction({
       ...tx,
       nonce
     });
-
-    process.send({ report: "200" });
   }
 }
 

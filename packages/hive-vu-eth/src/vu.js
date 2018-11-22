@@ -12,7 +12,7 @@ class VirtualUserEth {
     this.peers = peers;
     this.privateKey = privateKey;
     this.faucetclient = FaucetClient(GRPC_URL);
-    this.web3 = new Web3(RPC_URL);
+    this.web3 = new Web3(this.rpc);
     this.account = this.web3.eth.accounts.privateKeyToAccount(privateKey);
     this.address = this.account.address;
   }
