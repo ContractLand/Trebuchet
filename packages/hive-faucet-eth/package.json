@@ -1,6 +1,6 @@
 {
   "name": "hive-faucet-eth",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "",
   "main": "src/server.js",
   "scripts": {
@@ -18,7 +18,7 @@
     "babel-eslint": "^10.0.1",
     "bn.js": "^4.11.8",
     "grpc": "^1.16.0",
-    "hive-grpc": "^0.0.2",
+    "hive-grpc": "^0.0.3",
     "jest": "^23.6.0",
     "lodash": "^4.17.11",
     "web3": "^1.0.0-beta.36"
