@@ -44,6 +44,7 @@ class VirtualUserEth {
         }
       );
     });
+    this.reportTx({ type: "FUNDING" });
     return this.getBalance();
   }
 
@@ -61,10 +62,17 @@ class VirtualUserEth {
     return this.requestFund(amountToFund);
   }
 
-  // eslint-disable-next-line class-methods-use-this
-  async reportTx(tx) {
-    // console.log("==== Reporting transaction to reporting module ====");
-    // console.log(tx);
+  reportTx(tx) {
+    if (process.send) {
+      const txReport = {
+        type: "TX_REPORT",
+        pid: process.pid,
+        account: this.address,
+        timestamp: Date.now(),
+        tx
+      };
+      process.send(txReport);
+    }
   }
 
   async signTransaction(tx) {
@@ -76,7 +84,7 @@ class VirtualUserEth {
     const receipt = this.web3.eth.sendSignedTransaction(
       signedTx.rawTransaction
     );
-    await this.reportTx(tx);
+    this.reportTx(tx);
     return receipt;
   }
 }
