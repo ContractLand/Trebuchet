@@ -17,6 +17,10 @@ class VirtualUserEth {
     this.address = this.account.address;
   }
 
+  toWei(amount) {
+    return this.web3.utils.toWei(amount);
+  }
+
   async getNonce() {
     return this.web3.eth.getTransactionCount(this.address, "pending");
   }
@@ -59,8 +63,8 @@ class VirtualUserEth {
 
   // eslint-disable-next-line class-methods-use-this
   async reportTx(tx) {
-    console.log("==== Reporting transaction to reporting module ====");
-    console.log(tx);
+    // console.log("==== Reporting transaction to reporting module ====");
+    // console.log(tx);
   }
 
   async signTransaction(tx) {

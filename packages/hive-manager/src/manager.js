@@ -6,10 +6,10 @@ const Web3 = require("web3");
 const DEFAULT_VU_TYPE = "ETH";
 const DEFAULT_RPC = "http://localhost:8545";
 const DEFAULT_GRPC_URL = "localhost:50051";
-const DEFAULT_RAMP_PERIOD = 2000;
+const DEFAULT_RAMP_PERIOD = 5000;
 const DEFAULT_CONCURRENCY = 5;
-const DEFAULT_ACTIVE_PERIOD = 5000;
-const DEFAULT_COOLING_PERIOD = 5000;
+const DEFAULT_ACTIVE_PERIOD = 10000;
+const DEFAULT_COOLING_PERIOD = 10000;
 
 const STAGES = {
   INIT: "INIT",
@@ -58,6 +58,8 @@ class Manager {
     });
     this.rampUpInterval = null;
     this.hardstopTimeout = null;
+    this.runningInterval = null; // For reporting
+    this.startFaucet();
   }
 
   startFaucet() {
@@ -83,6 +85,9 @@ class Manager {
       rampUp,
       this.rampPeriod / this.concurrency
     );
+    this.runningInterval = setInterval(() => {
+      console.log(this.vuLimiter.counts());
+    }, 1000);
     this.scheduleVirtualUser();
   }
 
@@ -98,7 +103,7 @@ class Manager {
   startCoolOff() {
     this.stage = STAGES.COOL_OFF;
     console.log("STAGE TRANSITED:", this.stage);
-    this.vuLimiter.stop();
+    this.vuLimiter.stop({ dropWaitingJobs: false });
     console.log("COOOOOOLING");
     this.hardstopTimeout = setTimeout(() => {
       this.hardStop();
@@ -115,6 +120,7 @@ class Manager {
     } else {
       console.log("HARD STOPPED");
     }
+    clearInterval(this.runningInterval);
     this.stage = STAGES.TERMINATED;
 
     // Generates report here
@@ -128,11 +134,7 @@ class Manager {
 
   // Run a virtual user in the queue
   scheduleVirtualUser() {
-    try {
-      this.vuLimiter.schedule(this.runVirtualUser.bind(this));
-    } catch (e) {
-      console.log(e);
-    }
+    this.vuLimiter.schedule(this.runVirtualUser.bind(this));
   }
 
   // Can consider using a fixed list of actors instead of using random keys
@@ -148,7 +150,6 @@ class Manager {
         stdio: ["pipe", "pipe", "pipe", "ipc"]
       });
 
-      /*
       // Print stdout
       virtualUser.stdout.on("data", data => {
         console.log(`stdout: ${data}`);
@@ -158,7 +159,6 @@ class Manager {
       virtualUser.stderr.on("data", data => {
         console.log(`stderr: ${data}`);
       });
-      */
 
       // Async process ends when child process dies
       virtualUser.on("close", code => {
