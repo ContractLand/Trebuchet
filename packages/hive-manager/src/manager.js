@@ -1,14 +1,13 @@
 const Bottleneck = require("bottleneck");
 const { spawn } = require("child_process");
 const FaucetServer = require("hive-faucet-eth");
-const Web3 = require("web3");
 
 const DEFAULT_VU_TYPE = "ETH";
 const DEFAULT_RPC = "http://serveo.net:8545";
 const DEFAULT_GRPC_URL = "localhost:50051";
-const DEFAULT_RAMP_PERIOD = 10000;
-const DEFAULT_CONCURRENCY = 10;
-const DEFAULT_ACTIVE_PERIOD = 50000;
+const DEFAULT_RAMP_PERIOD = 2;
+const DEFAULT_CONCURRENCY = 2;
+const DEFAULT_ACTIVE_PERIOD = 5000;
 const DEFAULT_COOLING_PERIOD = 10000;
 
 const STAGES = {
@@ -18,8 +17,6 @@ const STAGES = {
   COOL_OFF: "COOL_OFF",
   TERMINATED: "TERMINATED"
 };
-
-const newPrivateKey = web3 => web3.eth.accounts.create().privateKey;
 
 class Manager {
   constructor({
@@ -43,8 +40,8 @@ class Manager {
     this.coolingTimeout = coolingTimeout;
     this.faucetPrivateKey = faucetPrivateKey;
     this.stage = STAGES.INIT;
-    this.web3 = new Web3(rpc);
     this.currentConcurrency = 1;
+    this.vuIndex = 0;
     this.vuLimiter = new Bottleneck({ maxConcurrent: this.currentConcurrency });
     this.vuLimiter.on("empty", () => {
       if (this.stage === STAGES.RAMP_UP || this.stage === STAGES.ACTIVE) {
@@ -148,11 +145,11 @@ class Manager {
 
   // Can consider using a fixed list of actors instead of using random keys
   async runVirtualUser() {
+    const index = this.vuIndex;
+    this.vuIndex += 1;
     return new Promise((resolve, reject) => {
       const initialState = {
-        privateKey: newPrivateKey(this.web3),
-        grpc: this.grpc,
-        rpc: this.rpc
+        index
       };
 
       const virtualUser = spawn("node", [this.vu], {

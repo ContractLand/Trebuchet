@@ -1,18 +1,24 @@
+const { v4: uuid } = require("uuid");
 const { FaucetClient } = require("hive-grpc");
 const Web3 = require("web3");
 
-const RPC_URL = "http://localhost:8545";
-const GRPC_URL = "localhost:50051";
-
 const { toBN } = Web3.utils;
 class VirtualUserEth {
-  constructor({ privateKey, peers, rpc, grpc }) {
-    this.rpc = rpc || RPC_URL;
-    this.grpc = grpc || GRPC_URL;
-    this.peers = peers;
-    this.privateKey = privateKey;
-    this.faucetclient = FaucetClient(GRPC_URL);
+  constructor({ index, privateKey, rpc, grpc }) {
+    if (!rpc) throw new Error("RPC endpoint is not defined");
+    if (!grpc) throw new Error("GRPC (faucet) endpoint is not defined");
+    if (!privateKey) throw new Error("Private key is not assigned");
+
+    // For VU
+    this.uuid = uuid();
+    this.index = index;
+
+    // For ETH VU
+    this.rpc = rpc;
+    this.grpc = grpc;
+    this.faucetclient = FaucetClient(this.grpc);
     this.web3 = new Web3(this.rpc);
+    this.privateKey = privateKey;
     this.account = this.web3.eth.accounts.privateKeyToAccount(privateKey);
     this.address = this.account.address;
   }

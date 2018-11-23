@@ -1,13 +1,14 @@
 const VU = require("hive-vu-eth");
+const Web3 = require("web3");
 
+const RPC = "http://serveo.net:8545";
+const GRPC_URL = "localhost:50051";
 class Actor extends VU {
   // eslint-disable-next-line class-methods-use-this
 
   async start() {
-    console.log("LOADED");
     // Request for some ether from the faucet
     await this.requestMinFund(this.toWei("0.01", "ether"));
-    console.log("LOADED2");
 
     let nonce = await this.getNonce();
     const tx = {
@@ -33,9 +34,16 @@ class Actor extends VU {
   }
 }
 
-// Assumption: Message will only be sent to actor for initialisation
 process.on("message", async state => {
-  const actor = new Actor(state);
+  const web3 = new Web3(RPC);
+  const { privateKey } = web3.eth.accounts.create();
+  const vuState = {
+    ...state,
+    privateKey,
+    rpc: RPC,
+    grpc: GRPC_URL
+  };
+  const actor = new Actor(vuState);
   await actor.start();
   process.exit();
 });
