@@ -6,6 +6,7 @@ const DEFAULT_RAMP_PERIOD = 5000;
 const DEFAULT_CONCURRENCY = 10;
 const DEFAULT_ACTIVE_PERIOD = 55000;
 const DEFAULT_COOLING_PERIOD = 10000;
+const DEFAULT_ONLINE_REPORTING_PERIOD = 1000;
 
 const STAGES = {
   INIT: "INIT",
@@ -22,7 +23,8 @@ class Manager {
     rampPeriod = DEFAULT_RAMP_PERIOD,
     concurrency = DEFAULT_CONCURRENCY,
     activePeriod = DEFAULT_ACTIVE_PERIOD,
-    coolingTimeout = DEFAULT_COOLING_PERIOD
+    coolingTimeout = DEFAULT_COOLING_PERIOD,
+    onlineReportingPeriod = DEFAULT_ONLINE_REPORTING_PERIOD
   }) {
     // Test scripts
     this.setupScript = setupScript;
@@ -33,6 +35,7 @@ class Manager {
     this.concurrency = concurrency;
     this.activePeriod = activePeriod;
     this.coolingTimeout = coolingTimeout;
+    this.onlineReportingPeriod = onlineReportingPeriod;
 
     // Loadtest states
     this.stage = STAGES.INIT;
@@ -62,6 +65,10 @@ class Manager {
     this.startRampUp();
   }
 
+  onlineReporting() {
+    console.log(this.vuLimiter.counts());
+  }
+
   startRampUp() {
     this.stage = STAGES.RAMP_UP;
     const rampUp = () => {
@@ -89,8 +96,8 @@ class Manager {
       this.rampPeriod / this.concurrency
     );
     this.runningInterval = setInterval(() => {
-      console.log(this.vuLimiter.counts());
-    }, 1000);
+      this.onlineReporting();
+    }, this.onlineReportingPeriod);
     this.scheduleVirtualUser();
   }
 
