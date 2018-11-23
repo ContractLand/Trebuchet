@@ -23,29 +23,28 @@ class Manager {
     activePeriod = DEFAULT_ACTIVE_PERIOD,
     coolingTimeout = DEFAULT_COOLING_PERIOD
   }) {
+    // Test scripts
     this.setupScript = setupScript;
     this.vuScript = vuScript;
+
+    // Load test parameter
     this.rampPeriod = rampPeriod;
     this.concurrency = concurrency;
     this.activePeriod = activePeriod;
     this.coolingTimeout = coolingTimeout;
+
+    // Load test states
     this.stage = STAGES.INIT;
     this.currentConcurrency = 1;
     this.vuIndex = 0;
-    this.vuLimiter = new Bottleneck({ maxConcurrent: this.currentConcurrency });
-    this.vuLimiter.on("empty", () => {
-      if (this.stage === STAGES.RAMP_UP || this.stage === STAGES.ACTIVE) {
-        this.scheduleVirtualUser();
-      } else if (
-        this.stage === STAGES.COOL_OFF ||
-        this.stage === STAGES.TERMINATED
-      ) {
-        this.hardStop();
-      }
-    });
     this.rampUpInterval = null;
     this.hardstopTimeout = null;
-    this.runningInterval = null; // For reporting
+
+    // Concurrency management
+    this.vuLimiter = new Bottleneck({ maxConcurrent: this.currentConcurrency });
+
+    // Reporting states
+    this.runningInterval = null;
     this.txReports = [];
     this.vuReports = [];
   }
@@ -74,6 +73,16 @@ class Manager {
         this.startActive();
       }
     };
+    this.vuLimiter.on("empty", () => {
+      if (this.stage === STAGES.RAMP_UP || this.stage === STAGES.ACTIVE) {
+        this.scheduleVirtualUser();
+      } else if (
+        this.stage === STAGES.COOL_OFF ||
+        this.stage === STAGES.TERMINATED
+      ) {
+        this.hardStop();
+      }
+    });
     this.rampUpInterval = setInterval(
       rampUp,
       this.rampPeriod / this.concurrency
