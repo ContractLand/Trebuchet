@@ -36,5 +36,6 @@
     "nyc": "^13.0.1",
     "prettier": "^1.14.2",
     "serverless-offline": "^3.25.11"
-  }
+  },
+  "gitHead": "a5e5a49165bd7c0f7eefa2ddf736464123360af3"
 }
