@@ -3,11 +3,11 @@ const { spawn } = require("child_process");
 const FaucetServer = require("hive-faucet-eth");
 
 const DEFAULT_VU_TYPE = "ETH";
-const DEFAULT_RPC = "http://serveo.net:8545";
+const DEFAULT_RPC = "http://localhost:8545";
 const DEFAULT_GRPC_URL = "localhost:50051";
-const DEFAULT_RAMP_PERIOD = 2;
-const DEFAULT_CONCURRENCY = 2;
-const DEFAULT_ACTIVE_PERIOD = 5000;
+const DEFAULT_RAMP_PERIOD = 1;
+const DEFAULT_CONCURRENCY = 1;
+const DEFAULT_ACTIVE_PERIOD = 3000;
 const DEFAULT_COOLING_PERIOD = 10000;
 
 const STAGES = {
@@ -57,6 +57,7 @@ class Manager {
     this.hardstopTimeout = null;
     this.runningInterval = null; // For reporting
     this.txReports = [];
+    this.vuReports = [];
     this.startFaucet();
   }
 
@@ -133,8 +134,10 @@ class Manager {
   // eslint-disable-next-line class-methods-use-this
   processMessage(report) {
     // console.log("Processing report");
-    if (report.type === "TX_REPORT") {
+    if (report.type === "TX") {
       this.txReports.push(report);
+    } else if (report.type === "VU") {
+      this.vuReports.push(report);
     }
   }
 

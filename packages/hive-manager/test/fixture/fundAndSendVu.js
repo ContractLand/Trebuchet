@@ -1,7 +1,7 @@
 const VU = require("hive-vu-eth");
 const Web3 = require("web3");
 
-const RPC = "http://serveo.net:8545";
+const RPC = "http://localhost:8545";
 const GRPC_URL = "localhost:50051";
 class Actor extends VU {
   // eslint-disable-next-line class-methods-use-this
@@ -10,7 +10,7 @@ class Actor extends VU {
     // Request for some ether from the faucet
     await this.requestMinFund(this.toWei("0.01", "ether"));
 
-    let nonce = await this.getNonce();
+    const nonce = await this.getNonce();
     const tx = {
       to: "0x3c7539cd57b7e03f722c3aeb636247188b25dcc4",
       value: this.toWei("0.002", "ether"),
@@ -19,6 +19,7 @@ class Actor extends VU {
     };
     await this.signAndSendTransaction(tx);
 
+    /*
     nonce += 1;
 
     await this.signAndSendTransaction({
@@ -31,6 +32,7 @@ class Actor extends VU {
       ...tx,
       nonce
     });
+    */
   }
 }
 

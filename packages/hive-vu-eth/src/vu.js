@@ -36,11 +36,11 @@ class VirtualUserEth {
   }
 
   /**
-   * Funds the VU's account balance
+   * Raw function to funds the VU's account balance
    * @param  {string|number|BN} fund - Amount to fund the VU's account with
    * @returns {string} Current balance in account
    */
-  async requestFund(fund) {
+  async requestFundRaw(fund) {
     await new Promise((resolve, reject) => {
       this.faucetclient.Fund(
         { address: this.address, amount: toBN(fund) },
@@ -50,8 +50,16 @@ class VirtualUserEth {
         }
       );
     });
-    this.reportTx({ type: "FUNDING" });
     return this.getBalance();
+  }
+
+  /**
+   * Funds the VU's account balance and report the transaction
+   * @param  {string|number|BN} fund - Amount to fund the VU's account with
+   * @returns {string} Current balance in account
+   */
+  async requestFund(fund) {
+    return this.txWrapper("FUNDING", this.requestFundRaw.bind(this), fund);
   }
 
   /**
@@ -68,14 +76,37 @@ class VirtualUserEth {
     return this.requestFund(amountToFund);
   }
 
-  reportTx(tx) {
+  /**
+   * Wraps a given function to automatically send a transaction report to the reporting module
+   * @param  {string} name - Name to appear on the transaction report
+   * @param  {function} fn - Function to be called
+   * @param  {any} ...args - Arguments to be passed into the function
+   */
+  async txWrapper(name, fn, ...args) {
+    const start = Date.now();
+    const data = await fn(...args);
+    const end = Date.now();
+    this.reportTx({
+      name,
+      start,
+      end,
+      duration: end - start,
+      error: false,
+      data
+    });
+    return data;
+  }
+
+  /**
+   * Sends a report to parent process through IPC when available
+   * @param  {Object} data - Data to be sent to manager
+   */
+  reportTx(data) {
     if (process.send) {
       const txReport = {
-        type: "TX_REPORT",
-        pid: process.pid,
-        account: this.address,
-        timestamp: Date.now(),
-        tx
+        ...data,
+        vu: this.uuid,
+        type: "TX"
       };
       process.send(txReport);
     }
@@ -85,13 +116,17 @@ class VirtualUserEth {
     return this.account.signTransaction(tx);
   }
 
-  async signAndSendTransaction(tx) {
+  /**
+   * @param  {} tx - Eth transaction to be signed
+   * @param  {string} name - (Optional) Name for transaction reporting
+   */
+  async signAndSendTransaction(tx, name) {
     const signedTx = await this.signTransaction(tx);
-    const receipt = this.web3.eth.sendSignedTransaction(
+    return this.txWrapper(
+      name || "TRANSACTION",
+      this.web3.eth.sendSignedTransaction.bind(this),
       signedTx.rawTransaction
     );
-    this.reportTx(tx);
-    return receipt;
   }
 }
 

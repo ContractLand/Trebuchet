@@ -5,7 +5,7 @@ const Manager = require("./manager");
 const VU_SCRIPT = join(__dirname, "../test/fixture/fundAndSendVu.js");
 
 const FUNDING_ACCOUNT_PRIVATE =
-  "0xbc5b578e0dcb2dbf98dd6e5fe62cb5a28b84a55e15fc112d4ca88e1f62bd7c35";
+  "0x678ae9837e83a4b356c01b741e36a9d4ef3ac916a843e8ae7d37b9dd2045f963";
 
 const manager = new Manager({
   vu: VU_SCRIPT,
