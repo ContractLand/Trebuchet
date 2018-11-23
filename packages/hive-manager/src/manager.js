@@ -1,9 +1,10 @@
 const Bottleneck = require("bottleneck");
 const { spawn } = require("child_process");
+const { v4: uuid } = require("uuid");
 
-const DEFAULT_RAMP_PERIOD = 1;
-const DEFAULT_CONCURRENCY = 1;
-const DEFAULT_ACTIVE_PERIOD = 3000;
+const DEFAULT_RAMP_PERIOD = 5000;
+const DEFAULT_CONCURRENCY = 10;
+const DEFAULT_ACTIVE_PERIOD = 55000;
 const DEFAULT_COOLING_PERIOD = 10000;
 
 const STAGES = {
@@ -27,13 +28,13 @@ class Manager {
     this.setupScript = setupScript;
     this.vuScript = vuScript;
 
-    // Load test parameter
+    // Loadtest parameter
     this.rampPeriod = rampPeriod;
     this.concurrency = concurrency;
     this.activePeriod = activePeriod;
     this.coolingTimeout = coolingTimeout;
 
-    // Load test states
+    // Loadtest states
     this.stage = STAGES.INIT;
     this.currentConcurrency = 1;
     this.vuIndex = 0;
@@ -131,6 +132,9 @@ class Manager {
   generateReport() {
     console.log(this.txReports);
     console.log("Total txs:", this.txReports.length);
+
+    console.log(this.vuReports);
+    console.log("Total VUs:", this.vuReports.length);
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -152,8 +156,12 @@ class Manager {
   async runVirtualUser() {
     const index = this.vuIndex;
     this.vuIndex += 1;
-    return new Promise((resolve, reject) => {
+    const id = uuid();
+
+    const start = Date.now();
+    const proc = new Promise((resolve, reject) => {
       const initialState = {
+        id,
         index
       };
 
@@ -187,6 +195,16 @@ class Manager {
       // Start the child process by sending it initial state
       virtualUser.send(initialState);
     });
+    await proc;
+    const end = Date.now();
+    const vuReport = {
+      type: "VU",
+      vu: id,
+      start,
+      end,
+      duration: end - start
+    };
+    this.vuReports.push(vuReport);
   }
 }
 

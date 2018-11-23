@@ -1,16 +1,15 @@
-const { v4: uuid } = require("uuid");
 const { FaucetClient } = require("hive-grpc");
 const Web3 = require("web3");
 
 const { toBN } = Web3.utils;
 class VirtualUserEth {
-  constructor({ index, privateKey, rpc, grpc }) {
+  constructor({ index, id, privateKey, rpc, grpc }) {
     if (!rpc) throw new Error("RPC endpoint is not defined");
     if (!grpc) throw new Error("GRPC (faucet) endpoint is not defined");
     if (!privateKey) throw new Error("Private key is not assigned");
 
     // For VU
-    this.uuid = uuid();
+    this.id = id;
     this.index = index;
 
     // For ETH VU
@@ -105,7 +104,7 @@ class VirtualUserEth {
     if (process.send) {
       const txReport = {
         ...data,
-        vu: this.uuid,
+        vu: this.id,
         type: "TX"
       };
       process.send(txReport);

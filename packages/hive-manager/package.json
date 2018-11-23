@@ -24,6 +24,7 @@
     "hive-vu-eth": "^0.0.3",
     "jest": "^23.6.0",
     "lodash": "^4.17.11",
+    "uuid": "^3.3.2",
     "web3": "^1.0.0-beta.36"
   },
   "devDependencies": {
