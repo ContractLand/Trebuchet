@@ -1,10 +1,6 @@
 const Bottleneck = require("bottleneck");
 const { spawn } = require("child_process");
-const FaucetServer = require("hive-faucet-eth");
 
-const DEFAULT_VU_TYPE = "ETH";
-const DEFAULT_RPC = "http://localhost:8545";
-const DEFAULT_GRPC_URL = "localhost:50051";
 const DEFAULT_RAMP_PERIOD = 1;
 const DEFAULT_CONCURRENCY = 1;
 const DEFAULT_ACTIVE_PERIOD = 3000;
@@ -20,25 +16,19 @@ const STAGES = {
 
 class Manager {
   constructor({
-    vu,
-    faucetPrivateKey,
-    type = DEFAULT_VU_TYPE,
-    rpc = DEFAULT_RPC,
-    grpc = DEFAULT_GRPC_URL,
+    vuScript,
+    setupScript,
     rampPeriod = DEFAULT_RAMP_PERIOD,
     concurrency = DEFAULT_CONCURRENCY,
     activePeriod = DEFAULT_ACTIVE_PERIOD,
     coolingTimeout = DEFAULT_COOLING_PERIOD
   }) {
-    this.vu = vu;
-    this.type = type;
-    this.rpc = rpc;
-    this.grpc = grpc;
+    this.setupScript = setupScript;
+    this.vuScript = vuScript;
     this.rampPeriod = rampPeriod;
     this.concurrency = concurrency;
     this.activePeriod = activePeriod;
     this.coolingTimeout = coolingTimeout;
-    this.faucetPrivateKey = faucetPrivateKey;
     this.stage = STAGES.INIT;
     this.currentConcurrency = 1;
     this.vuIndex = 0;
@@ -58,15 +48,18 @@ class Manager {
     this.runningInterval = null; // For reporting
     this.txReports = [];
     this.vuReports = [];
-    this.startFaucet();
   }
 
-  startFaucet() {
-    this.server = FaucetServer({
-      rpc: this.rpc,
-      grpcUrl: this.grpc,
-      faucetPrivateKey: this.faucetPrivateKey
-    });
+  async setup() {
+    if (this.setupScript) {
+      // eslint-disable-next-line global-require,import/no-dynamic-require
+      await require(this.setupScript)();
+    }
+  }
+
+  async runTest() {
+    await this.setup();
+    this.startRampUp();
   }
 
   startRampUp() {
@@ -155,7 +148,7 @@ class Manager {
         index
       };
 
-      const virtualUser = spawn("node", [this.vu], {
+      const virtualUser = spawn("node", [this.vuScript], {
         stdio: ["pipe", "pipe", "pipe", "ipc"]
       });
 
