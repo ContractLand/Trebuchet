@@ -8,6 +8,8 @@ const DEFAULT_CONCURRENCY = 10;
 const DEFAULT_ACTIVE_PERIOD = 55000;
 const DEFAULT_COOLING_PERIOD = 10000;
 const DEFAULT_ONLINE_REPORTING_PERIOD = 1000;
+const DEFAULT_TX_REPORT_DIR = "./txReport.json";
+const DEFAULT_VU_REPORT_DIR = "./vuReport.json";
 
 const STAGES = {
   INIT: "INIT",
@@ -25,7 +27,9 @@ class Manager {
     concurrency = DEFAULT_CONCURRENCY,
     activePeriod = DEFAULT_ACTIVE_PERIOD,
     coolingTimeout = DEFAULT_COOLING_PERIOD,
-    onlineReportingPeriod = DEFAULT_ONLINE_REPORTING_PERIOD
+    onlineReportingPeriod = DEFAULT_ONLINE_REPORTING_PERIOD,
+    txReportDir = DEFAULT_TX_REPORT_DIR,
+    vuReportDir = DEFAULT_VU_REPORT_DIR
   }) {
     // Test scripts
     this.setupScript = setupScript;
@@ -52,6 +56,8 @@ class Manager {
     this.runningInterval = null;
     this.txReports = [];
     this.vuReports = [];
+    this.txReportDir = txReportDir;
+    this.vuReportDir = vuReportDir;
   }
 
   async setup() {
@@ -138,19 +144,9 @@ class Manager {
   }
 
   generateReport() {
-    console.log(this.txReports);
-    console.log("Total txs:", this.txReports.length);
-    fs.writeFileSync(
-      "./txReport.json",
-      JSON.stringify(this.txReports, null, 2)
-    );
-
-    console.log(this.vuReports);
-    console.log("Total VUs:", this.vuReports.length);
-    fs.writeFileSync(
-      "./vuReport.json",
-      JSON.stringify(this.vuReports, null, 2)
-    );
+    fs.writeFileSync(this.txReportDir, JSON.stringify(this.txReports, null, 2));
+    fs.writeFileSync(this.vuReportDir, JSON.stringify(this.vuReports, null, 2));
+    process.exit();
   }
 
   // eslint-disable-next-line class-methods-use-this

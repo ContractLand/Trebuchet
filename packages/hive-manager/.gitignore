@@ -1,2 +1,4 @@
 node_modules
 coverage
+vuReport.json
+txReport.json

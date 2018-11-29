@@ -22,3 +22,4 @@ The configuration for the above test is as followed:
 
 - Hooking up manager to report module
 - CLI bootstrapping of new load test projects
+- Distributed load test
