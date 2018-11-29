@@ -8,15 +8,15 @@ There are currently many supporting load testing for REST APIs but there are cur
 
 The above is a screenshot from the load test of our private Ethereum network with the following configurations:
 
-Client: geth
-Node: 3
-Compute: AWS EC2 r5a.xlarge
+- Client: geth
+- Node: 3
+- Compute: AWS EC2 r5a.xlarge
 
 The configuration for the above test is as followed:
 
-Concurrency (VUs): 20
-Ramp Period: 5 sec
-Active Preiod: 55 sec
+- Concurrency (VUs): 20
+- Ramp Period: 5 sec
+- Active Preiod: 55 sec
 
 # Todo
 

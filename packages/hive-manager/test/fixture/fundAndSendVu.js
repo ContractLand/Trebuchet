@@ -10,7 +10,7 @@ class Actor extends VU {
     // Request for some ether from the faucet
     await this.requestMinFund(this.toWei("0.01", "ether"));
 
-    const nonce = await this.getNonce();
+    let nonce = await this.getNonce();
     const tx = {
       to: "0x3c7539cd57b7e03f722c3aeb636247188b25dcc4",
       value: this.toWei("0.002", "ether"),
@@ -19,7 +19,6 @@ class Actor extends VU {
     };
     await this.signAndSendTransaction(tx);
 
-    /*
     nonce += 1;
 
     await this.signAndSendTransaction({
@@ -32,7 +31,6 @@ class Actor extends VU {
       ...tx,
       nonce
     });
-    */
   }
 }
 
