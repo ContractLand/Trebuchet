@@ -1,0 +1,23 @@
+{
+  "name": "hive-report-template",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next",
+    "build": "next build",
+    "start": "next start",
+    "export": "rm -rf ./out && next build && next export"
+  },
+  "keywords": [],
+  "author": "Raymond Yeh <yehjxraymond@gmail.com> (http://geek.sg)",
+  "license": "ISC",
+  "dependencies": {
+    "echarts": "^4.2.0-rc.2",
+    "echarts-for-react": "^2.0.15-beta.0",
+    "lodash": "^4.17.11",
+    "next": "^7.0.2",
+    "react": "^16.6.3",
+    "react-dom": "^16.6.3"
+  }
+}
