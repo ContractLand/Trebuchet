@@ -1,6 +1,7 @@
 const Bottleneck = require("bottleneck");
 const { spawn } = require("child_process");
 const { v4: uuid } = require("uuid");
+const fs = require("fs");
 
 const DEFAULT_RAMP_PERIOD = 5000;
 const DEFAULT_CONCURRENCY = 10;
@@ -139,9 +140,17 @@ class Manager {
   generateReport() {
     console.log(this.txReports);
     console.log("Total txs:", this.txReports.length);
+    fs.writeFileSync(
+      "./txReport.json",
+      JSON.stringify(this.txReports, null, 2)
+    );
 
     console.log(this.vuReports);
     console.log("Total VUs:", this.vuReports.length);
+    fs.writeFileSync(
+      "./vuReport.json",
+      JSON.stringify(this.vuReports, null, 2)
+    );
   }
 
   // eslint-disable-next-line class-methods-use-this
