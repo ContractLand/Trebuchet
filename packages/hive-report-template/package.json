@@ -11,7 +11,8 @@
     "dev": "next",
     "build": "next build",
     "start": "next start",
-    "export": "rm -rf ./out && next build && next export"
+    "removeStaticFiles": "rm ./out/static/txReport.json && rm ./out/static/vuReport.json",
+    "export": "rm -rf ./out && next build && next export && npm run removeStaticFiles"
   },
   "keywords": [],
   "author": "Raymond Yeh <yehjxraymond@gmail.com> (http://geek.sg)",
