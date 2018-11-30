@@ -2,14 +2,18 @@ const Bottleneck = require("bottleneck");
 const { spawn } = require("child_process");
 const { v4: uuid } = require("uuid");
 const fs = require("fs");
+const { join } = require("path");
+const tmp = require("tmp");
+const reportGenerator = require("hive-report-template");
 
 const DEFAULT_RAMP_PERIOD = 5000;
 const DEFAULT_CONCURRENCY = 10;
 const DEFAULT_ACTIVE_PERIOD = 55000;
 const DEFAULT_COOLING_PERIOD = 10000;
 const DEFAULT_ONLINE_REPORTING_PERIOD = 1000;
-const DEFAULT_TX_REPORT_DIR = "./txReport.json";
-const DEFAULT_VU_REPORT_DIR = "./vuReport.json";
+const DEFAULT_REPORT_PATH = join(__dirname, "../load_test_report");
+const DEFAULT_TX_REPORT_NAME = "txReport.json";
+const DEFAULT_VU_REPORT_NAME = "vuReport.json";
 
 const STAGES = {
   INIT: "INIT",
@@ -28,8 +32,7 @@ class Manager {
     activePeriod = DEFAULT_ACTIVE_PERIOD,
     coolingTimeout = DEFAULT_COOLING_PERIOD,
     onlineReportingPeriod = DEFAULT_ONLINE_REPORTING_PERIOD,
-    txReportDir = DEFAULT_TX_REPORT_DIR,
-    vuReportDir = DEFAULT_VU_REPORT_DIR
+    reportPath = DEFAULT_REPORT_PATH
   }) {
     // Test scripts
     this.setupScript = setupScript;
@@ -56,8 +59,7 @@ class Manager {
     this.runningInterval = null;
     this.txReports = [];
     this.vuReports = [];
-    this.txReportDir = txReportDir;
-    this.vuReportDir = vuReportDir;
+    this.reportPath = reportPath;
   }
 
   async setup() {
@@ -144,8 +146,14 @@ class Manager {
   }
 
   generateReport() {
-    fs.writeFileSync(this.txReportDir, JSON.stringify(this.txReports, null, 2));
-    fs.writeFileSync(this.vuReportDir, JSON.stringify(this.vuReports, null, 2));
+    const tmpDir = tmp.dirSync().name;
+    const txReportPath = join(tmpDir, DEFAULT_TX_REPORT_NAME);
+    const vuReportPath = join(tmpDir, DEFAULT_VU_REPORT_NAME);
+
+    fs.writeFileSync(txReportPath, JSON.stringify(this.txReports, null, 2));
+    fs.writeFileSync(vuReportPath, JSON.stringify(this.vuReports, null, 2));
+
+    reportGenerator(vuReportPath, txReportPath, this.reportPath);
     process.exit();
   }
 

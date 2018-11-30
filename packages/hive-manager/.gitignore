@@ -2,3 +2,4 @@ node_modules
 coverage
 vuReport.json
 txReport.json
+load_test_report
