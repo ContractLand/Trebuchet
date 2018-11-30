@@ -1,6 +1,5 @@
 import { sortBy } from "lodash";
 
-
 export const concurrencyReport = txns => {
   const increaments = txns.map(t => ({ time: t.start, diff: 1 }));
   const decreaments = txns.map(t => ({ time: t.end, diff: -1 }));
@@ -12,9 +11,8 @@ export const concurrencyReport = txns => {
   });
 };
 
-export const systematicSampling = (txns, k) => {
-  return txns.reduce((prev, curr, index) => {
+export const systematicSampling = (txns, k) =>
+  txns.reduce((prev, curr, index) => {
     if (index % k === 0) return prev.concat(curr);
     return prev;
   }, []);
-}

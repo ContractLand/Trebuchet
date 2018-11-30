@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 import ReactEcharts from "echarts-for-react";
 
 const DistributionGraph = ({ report, concurrencyReport }) => {
@@ -71,9 +72,12 @@ const DistributionGraph = ({ report, concurrencyReport }) => {
     ]
   };
 
-  return (
-    <ReactEcharts option={option} notMerge={true} lazyUpdate={true} />
-  );
+  return <ReactEcharts option={option} notMerge={true} lazyUpdate={true} />;
+};
+
+DistributionGraph.propTypes = {
+  report: PropTypes.object,
+  concurrencyReport: PropTypes.object
 };
 
 export default DistributionGraph;

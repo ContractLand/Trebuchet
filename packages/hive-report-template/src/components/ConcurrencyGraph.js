@@ -1,9 +1,7 @@
+import PropTypes from "prop-types";
 import ReactEcharts from "echarts-for-react";
 
-const ConcurrencyGraph = ({
-  txConcurrencyReport,
-  vuConcurrencyReport
-}) => {
+const ConcurrencyGraph = ({ txConcurrencyReport, vuConcurrencyReport }) => {
   const option = {
     toolbox: {
       feature: {
@@ -65,6 +63,11 @@ const ConcurrencyGraph = ({
   };
 
   return <ReactEcharts option={option} notMerge={true} lazyUpdate={true} />;
+};
+
+ConcurrencyGraph.propTypes = {
+  txConcurrencyReport: PropTypes.object,
+  vuConcurrencyReport: PropTypes.object
 };
 
 export default ConcurrencyGraph;

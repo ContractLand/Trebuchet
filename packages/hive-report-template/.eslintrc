@@ -1,0 +1,46 @@
+{
+  "parser": "babel-eslint",
+  "extends": [
+    "plugin:react/recommended",
+    "airbnb-base",
+    "prettier"
+  ],
+  "env": {
+    "jest/globals": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 2018,
+    "sourceType": "module",
+    "ecmaFeatures": {
+        "jsx": true
+    }
+  },
+  "plugins": [
+    "react",
+    "prettier",
+    "jest"
+  ],
+  "globals": {
+    "artifacts": false,
+    "contract": false,
+    "assert": false,
+    "expect": true,
+    "window": true,
+    "document": true
+  },
+  "rules": {
+    "no-unused-vars": [
+      "error",
+      {
+        "argsIgnorePattern": "^_"
+      }
+    ],
+    "func-names": [
+      "error",
+      "as-needed"
+    ],
+    "react/react-in-jsx-scope": "off",
+    "prettier/prettier": "error",
+    "no-unused-expressions": "off"
+  }
+}
