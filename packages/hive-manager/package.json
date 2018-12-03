@@ -1,6 +1,6 @@
 {
   "name": "hive-manager",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "",
   "main": "src/index.js",
   "scripts": {
@@ -19,10 +19,10 @@
     "bn.js": "^4.11.8",
     "bottleneck": "^2.13.0",
     "grpc": "^1.16.0",
-    "hive-faucet-eth": "^0.0.6",
-    "hive-grpc": "^0.0.6",
-    "hive-report-template": "^0.0.6",
-    "hive-vu-eth": "^0.0.6",
+    "hive-faucet-eth": "^0.0.7",
+    "hive-grpc": "^0.0.7",
+    "hive-report-template": "^0.0.7",
+    "hive-vu-eth": "^0.0.7",
     "jest": "^23.6.0",
     "lodash": "^4.17.11",
     "tmp": "^0.0.33",
