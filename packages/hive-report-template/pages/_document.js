@@ -27,8 +27,10 @@ export default class MyDocument extends Document {
             integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
             crossOrigin="anonymous"
           />
+          <script src="./static/txReport.js" />
+          <script src="./static/vuReport.js" />
         </Head>
-        <body style={{ backgroundColor: "#e2dada" }}>
+        <body>
           <Main />
           <NextScript />
         </body>

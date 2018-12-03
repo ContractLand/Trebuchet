@@ -5633,7 +5633,7 @@ var _formatWebpackMessages = _interopRequireDefault(__webpack_require__(/*! ./fo
 
 var ErrorOverlay = _interopRequireWildcard(__webpack_require__(/*! react-error-overlay */ "./node_modules/react-error-overlay/lib/index.js"));
 
-var _stripAnsi = _interopRequireDefault(__webpack_require__(/*! strip-ansi */ "./node_modules/strip-ansi/index.js"));
+var _stripAnsi = _interopRequireDefault(__webpack_require__(/*! strip-ansi */ "./node_modules/next/node_modules/strip-ansi/index.js"));
 
 var _sourceMapSupport = __webpack_require__(/*! ../source-map-support */ "./node_modules/next/dist/client/source-map-support.js");
 
@@ -9117,6 +9117,24 @@ function getURL() {
   var origin = getLocationOrigin();
   return href.substring(origin.length);
 }
+
+/***/ }),
+
+/***/ "./node_modules/next/node_modules/strip-ansi/index.js":
+/*!************************************************************!*\
+  !*** ./node_modules/next/node_modules/strip-ansi/index.js ***!
+  \************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var ansiRegex = __webpack_require__(/*! ansi-regex */ "./node_modules/ansi-regex/index.js")();
+
+module.exports = function (str) {
+	return typeof str === 'string' ? str.replace(ansiRegex, '') : str;
+};
+
 
 /***/ }),
 
@@ -17032,24 +17050,6 @@ if (hadRuntime) {
     return this || (typeof self === "object" && self);
   })() || Function("return this")()
 );
-
-
-/***/ }),
-
-/***/ "./node_modules/strip-ansi/index.js":
-/*!******************************************!*\
-  !*** ./node_modules/strip-ansi/index.js ***!
-  \******************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-var ansiRegex = __webpack_require__(/*! ansi-regex */ "./node_modules/ansi-regex/index.js")();
-
-module.exports = function (str) {
-	return typeof str === 'string' ? str.replace(ansiRegex, '') : str;
-};
 
 
 /***/ }),

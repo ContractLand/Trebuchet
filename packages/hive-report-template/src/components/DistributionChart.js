@@ -76,8 +76,8 @@ const DistributionGraph = ({ report, concurrencyReport }) => {
 };
 
 DistributionGraph.propTypes = {
-  report: PropTypes.object,
-  concurrencyReport: PropTypes.object
+  report: PropTypes.array,
+  concurrencyReport: PropTypes.array
 };
 
 export default DistributionGraph;

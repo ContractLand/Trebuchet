@@ -13,8 +13,9 @@ test("generateReport creates a report in the directory", () => {
 
   // Check if the report is generated
   expect(existsSync(join(tmpDir, "index.js"))).toBe.true;
-  expect(existsSync(join(tmpDir, "static/txReport.json"))).toBe.true;
-  expect(existsSync(join(tmpDir, "static/vuReport.json"))).toBe.true;
+  expect(existsSync(join(tmpDir, "static/txReport.js"))).toBe.true;
+  expect(existsSync(join(tmpDir, "static/vuReport.js"))).toBe.true;
+  console.log(tmpDir);
 });
 
 test("generateReport should throw when arguments are missing", () => {

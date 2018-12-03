@@ -1,5 +1,6 @@
 const { join } = require("path");
-const { copyFileSync } = require("fs");
+const { ensureDirSync } = require("fs-extra");
+const { writeFileSync } = require("fs");
 const copydir = require("copy-dir");
 
 const generateReport = (vuReportPath, txReportPath, pathToCreateReport) => {
@@ -10,11 +11,23 @@ const generateReport = (vuReportPath, txReportPath, pathToCreateReport) => {
   }
 
   // Copy content from out to path
-  copydir.sync(join(__dirname, "./out"), pathToCreateReport);
+  copydir.sync(join(__dirname, "out"), pathToCreateReport);
 
+  ensureDirSync(join(pathToCreateReport, "static"));
   // Copy both vuReport and txReport to folder in path
-  copyFileSync(vuReportPath, join(pathToCreateReport, "static/vuReport.json"));
-  copyFileSync(txReportPath, join(pathToCreateReport, "static/txReport.json"));
+  // eslint-disable-next-line import/no-dynamic-require, global-require
+  const vuReport = require(vuReportPath);
+  writeFileSync(
+    join(pathToCreateReport, "static/vuReport.js"),
+    `window.vuReport =${JSON.stringify(vuReport, null, 2)}`
+  );
+
+  // eslint-disable-next-line import/no-dynamic-require, global-require
+  const txReport = require(txReportPath);
+  writeFileSync(
+    join(pathToCreateReport, "static/txReport.js"),
+    `window.txReport = ${JSON.stringify(txReport, null, 2)}`
+  );
 };
 
 module.exports = generateReport;

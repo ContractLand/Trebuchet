@@ -66,8 +66,8 @@ const ConcurrencyGraph = ({ txConcurrencyReport, vuConcurrencyReport }) => {
 };
 
 ConcurrencyGraph.propTypes = {
-  txConcurrencyReport: PropTypes.object,
-  vuConcurrencyReport: PropTypes.object
+  txConcurrencyReport: PropTypes.array,
+  vuConcurrencyReport: PropTypes.array
 };
 
 export default ConcurrencyGraph;
