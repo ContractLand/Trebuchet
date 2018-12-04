@@ -8,11 +8,11 @@ class Actor extends VU {
 
   async start() {
     // Request for some ether from the faucet
-    await this.requestMinFund(this.toWei("0.01", "ether"));
+    await this.requestMinFund(Web3.utils.toWei("0.01", "ether"));
 
     const tx = {
       to: "0x3c7539cd57b7e03f722c3aeb636247188b25dcc4",
-      value: this.toWei("0.002", "ether"),
+      value: Web3.utils.toWei("0.002", "ether"),
       gas: 21000
     };
     await this.signAndSendTransaction(tx);
