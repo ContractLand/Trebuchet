@@ -15,23 +15,23 @@ class VirtualUserEth {
     // For ETH VU
     this.rpc = rpc;
     this.grpc = grpc;
-    this.faucetclient = FaucetClient(this.grpc);
+    this.faucetClient = FaucetClient(this.grpc);
     this.web3 = new Web3(this.rpc);
-    this.privateKey = privateKey;
     this.account = this.web3.eth.accounts.privateKeyToAccount(privateKey);
-    this.address = this.account.address;
   }
 
-  toWei(amount) {
-    return this.web3.utils.toWei(amount);
+  async initNonce() {
+    if (!this.nonce) {
+      this.nonce = await this.getNonce();
+    }
   }
 
   async getNonce() {
-    return this.web3.eth.getTransactionCount(this.address, "pending");
+    return this.web3.eth.getTransactionCount(this.account.address, "pending");
   }
 
   async getBalance() {
-    return this.web3.eth.getBalance(this.address);
+    return this.web3.eth.getBalance(this.account.address);
   }
 
   /**
@@ -41,8 +41,8 @@ class VirtualUserEth {
    */
   async requestFundRaw(fund) {
     await new Promise((resolve, reject) => {
-      this.faucetclient.Fund(
-        { address: this.address, amount: toBN(fund) },
+      this.faucetClient.Fund(
+        { address: this.account.address, amount: toBN(fund) },
         (err, response) => {
           if (err) return reject(err);
           return resolve(response);
@@ -115,12 +115,21 @@ class VirtualUserEth {
     return this.account.signTransaction(tx);
   }
 
+  async incrementNonce() {
+    this.nonce += 1;
+  }
+
   /**
    * @param  {} tx - Eth transaction to be signed
    * @param  {string} name - (Optional) Name for transaction reporting
    */
   async signAndSendTransaction(tx, name) {
-    const signedTx = await this.signTransaction(tx);
+    await this.initNonce();
+    const signedTx = await this.signTransaction({
+      ...tx,
+      nonce: this.nonce
+    });
+    this.incrementNonce();
     return this.txWrapper(
       name || "TRANSACTION",
       this.web3.eth.sendSignedTransaction.bind(this),

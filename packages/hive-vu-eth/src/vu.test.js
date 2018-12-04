@@ -1,90 +1,76 @@
-const FaucetServer = require("hive-faucet-eth");
-const Web3 = require("web3");
 const VU = require("./vu");
 
-const RPC_URL = "http://localhost:8545";
-const GRPC_URL = "localhost:50051";
-const FUNDING_ACCOUNT_PRIVATE =
+// Test parameters
+const rpc = "http://localhost:8545";
+const grpc = "localhost:50051";
+const privateKey =
   "0x678ae9837e83a4b356c01b741e36a9d4ef3ac916a843e8ae7d37b9dd2045f963";
 
-const { toWei } = Web3.utils;
-
-describe("VU", () => {
-  let web3;
-  let vu;
-  let server;
-
-  const newAddress = () => web3.eth.accounts.create().address;
-  const newPrivateKey = () => web3.eth.accounts.create().privateKey;
-
-  beforeAll(() => {
-    web3 = new Web3(RPC_URL);
-    server = FaucetServer({
-      grpcUrl: GRPC_URL,
-      faucetPrivateKey: FUNDING_ACCOUNT_PRIVATE
+describe("constructor", () => {
+  test("should set properties correctly", () => {
+    const index = 10;
+    const id = 1337;
+    const vu = new VU({
+      index,
+      id,
+      privateKey,
+      rpc,
+      grpc
     });
+    expect(vu.id).toBe(id);
+    expect(vu.index).toBe(index);
+    expect(vu.rpc).toBe(rpc);
+    expect(vu.grpc).toBe(grpc);
+    expect(vu.faucetClient).toBeTruthy();
+    expect(vu.web3).toBeTruthy();
+    expect(vu.account.address).toBe(
+      "0x3c7539cd57b7E03f722C3AEb636247188b25dcC4"
+    );
+    expect(vu.account.privateKey).toBe(privateKey);
+    expect(vu.account.signTransaction).toBeTruthy();
+    expect(vu.account.sign).toBeTruthy();
+    expect(vu.account.encrypt).toBeTruthy();
   });
 
-  afterAll(async () => {
-    // GRPC has a problem with shutting down, therefore requiring --forceExit on jest.
-    const deferShutdown = new Promise(resolve => {
-      server.tryShutdown(() => {
-        resolve();
-      });
-    });
-    await deferShutdown;
+  test("should throw when rpc is not set", () => {
+    const index = 10;
+    const id = 1337;
+    expect(
+      () =>
+        new VU({
+          index,
+          id,
+          privateKey,
+          grpc
+        })
+    ).toThrow();
   });
 
-  beforeEach(() => {
-    vu = new VU({
-      privateKey: newPrivateKey(),
-      rpc: RPC_URL,
-      grpc: GRPC_URL
-    });
+  test("should throw when grpc is not set", () => {
+    const index = 10;
+    const id = 1337;
+    expect(
+      () =>
+        new VU({
+          index,
+          id,
+          privateKey,
+          rpc
+        })
+    ).toThrow();
   });
 
-  describe("requestFund", () => {
-    test("should fund VU with funds", async () => {
-      const fund = "100";
-      const finalBalance = await vu.requestFund(fund);
-
-      expect(finalBalance).toEqual(fund);
-    });
-  });
-
-  describe("requestMinFund", () => {
-    test("should fund VU with funds", async () => {
-      const intermediateBal = await vu.requestMinFund(500);
-      const finalBalance = await vu.requestMinFund(600);
-
-      expect(intermediateBal).toEqual("500");
-      expect(finalBalance).toEqual("600");
-    });
-    test("should not fund when fund is greater than or equal to VU's balance", async () => {
-      await vu.requestFund(500);
-      const intermediateBalance = await vu.requestMinFund(400);
-      const finalBalance = await vu.requestMinFund(500);
-
-      expect(intermediateBalance).toEqual("500");
-      expect(finalBalance).toEqual("500");
-    });
-  });
-
-  describe("signAndSendTransaction", () => {
-    test("should send a transaction", async () => {
-      await vu.requestFund(toWei("0.05", "ether"));
-      const receiver = newAddress();
-      const nonce = await vu.getNonce();
-      const tx = {
-        gas: 21000,
-        to: receiver,
-        from: vu.address,
-        value: toWei("0.01", "ether"),
-        nonce
-      };
-      await vu.signAndSendTransaction(tx);
-      const receiverBalance = await web3.eth.getBalance(receiver);
-      expect(receiverBalance).toEqual(toWei("0.01", "ether"));
-    });
+  test("should throw when private key is not set", () => {
+    const index = 10;
+    const id = 1337;
+    expect(
+      () =>
+        new VU({
+          index,
+          id,
+          rpc,
+          grpc
+        })
+    ).toThrow();
   });
 });

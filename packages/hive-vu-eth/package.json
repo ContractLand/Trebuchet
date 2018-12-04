@@ -6,6 +6,7 @@
   "scripts": {
     "lint": "eslint . --ext .js --max-warnings 0",
     "lint:fix": "eslint . --ext .js --fix",
+    "e2e": "jest --config=\"e2e/jest.config.js\" --forceExit",
     "test": "jest --forceExit",
     "test:watch": "jest --watch --forceExit --verbose",
     "network": "ganache-cli -b 5 -m \"deputy apology card solution wage spot tray choice thing hollow peanut matrix\""
