@@ -116,6 +116,7 @@ class VirtualUserEth {
   }
 
   async incrementNonce() {
+    await this.initNonce();
     this.nonce += 1;
   }
 

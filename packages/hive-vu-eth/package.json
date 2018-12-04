@@ -31,7 +31,8 @@
     "eslint-plugin-jest": "^22.0.0",
     "eslint-plugin-prettier": "^2.6.2",
     "hive-faucet-eth": "^0.0.1",
-    "prettier": "^1.14.2"
+    "prettier": "^1.14.2",
+    "sinon": "^7.1.1"
   },
   "gitHead": "a5e5a49165bd7c0f7eefa2ddf736464123360af3"
 }

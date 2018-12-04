@@ -254,4 +254,51 @@ describe("class methods", () => {
       process.send.restore();
     });
   });
+
+  describe("signTransaction", () => {
+    test("should use web3 account to sign the transaction", async () => {
+      const testTx = { foo: "bar" };
+      vu.account.signTransaction = tx => {
+        expect(tx).toEqual(testTx);
+        return "Signed";
+      };
+      const signedTx = await vu.signTransaction(testTx);
+      expect(signedTx).toBe("Signed");
+    });
+  });
+
+  describe("incrementNonce", () => {
+    test("should increase the nonce by 1", async () => {
+      vu.nonce = 999;
+      await vu.incrementNonce();
+      expect(vu.nonce).toBe(1000);
+    });
+
+    test("should initialise nonce if it is not found", async () => {
+      vu.initNonce = () => {
+        vu.nonce = 999;
+      };
+      await vu.incrementNonce();
+      expect(vu.nonce).toBe(1000);
+    });
+  });
+
+  describe("signAndSendTransaction", () => {
+    test("should sign, send and record transaction", async () => {
+      vu.signTransaction = tx => {
+        expect(tx).toEqual({
+          foo: "bar",
+          nonce: 9
+        });
+        return { rawTransaction: "Signed Raw Tx" };
+      };
+      vu.web3.eth.sendSignedTransaction = tx => {
+        expect(tx).toEqual("Signed Raw Tx");
+        return "Tx Receipt";
+      };
+      vu.nonce = 9;
+      const receipt = await vu.signAndSendTransaction({ foo: "bar" });
+      expect(receipt).toEqual("Tx Receipt");
+    });
+  });
 });
