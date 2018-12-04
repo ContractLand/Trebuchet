@@ -13,14 +13,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@grpc/proto-loader": "^0.3.0",
-    "await-semaphore": "^0.1.3",
     "babel-eslint": "^10.0.1",
-    "bn.js": "^4.11.8",
     "bottleneck": "^2.13.0",
-    "grpc": "^1.16.0",
     "hive-faucet-eth": "^0.0.7",
-    "hive-grpc": "^0.0.7",
     "hive-report-template": "^0.0.7",
     "hive-vu-eth": "^0.0.7",
     "jest": "^23.6.0",
@@ -30,7 +25,6 @@
   },
   "devDependencies": {
     "babel-eslint": "^10.0.1",
-    "chai": "^4.1.2",
     "eslint": "^5.6.0",
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-config-prettier": "^3.0.1",
@@ -39,7 +33,6 @@
     "eslint-plugin-jest": "^22.0.0",
     "eslint-plugin-prettier": "^2.6.2",
     "nodemon": "^1.18.5",
-    "nyc": "^13.0.1",
     "prettier": "^1.14.2"
   },
   "gitHead": "a5e5a49165bd7c0f7eefa2ddf736464123360af3"
