@@ -74,17 +74,31 @@ describe("VU", () => {
     test("should send a transaction", async () => {
       await vu.requestFund(toWei("0.05", "ether"));
       const receiver = newAddress();
-      const nonce = await vu.getNonce();
       const tx = {
         gas: 21000,
         to: receiver,
         from: vu.address,
-        value: toWei("0.01", "ether"),
-        nonce
+        value: toWei("0.01", "ether")
       };
       await vu.signAndSendTransaction(tx);
       const receiverBalance = await web3.eth.getBalance(receiver);
       expect(receiverBalance).toEqual(toWei("0.01", "ether"));
+    });
+
+    test("should send multiple transactions", async () => {
+      await vu.requestFund(toWei("0.05", "ether"));
+      const receiver = newAddress();
+      const tx = {
+        gas: 21000,
+        to: receiver,
+        from: vu.address,
+        value: toWei("0.01", "ether")
+      };
+      await vu.signAndSendTransaction(tx);
+      await vu.signAndSendTransaction(tx);
+      await vu.signAndSendTransaction(tx);
+      const receiverBalance = await web3.eth.getBalance(receiver);
+      expect(receiverBalance).toEqual(toWei("0.03", "ether"));
     });
   });
 });
