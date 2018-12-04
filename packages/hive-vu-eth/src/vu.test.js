@@ -1,90 +1,304 @@
-const FaucetServer = require("hive-faucet-eth");
-const Web3 = require("web3");
+const sinon = require("sinon");
 const VU = require("./vu");
 
-const RPC_URL = "http://localhost:8545";
-const GRPC_URL = "localhost:50051";
-const FUNDING_ACCOUNT_PRIVATE =
+// Test parameters
+const index = 10;
+const id = 1337;
+const rpc = "http://localhost:8545";
+const grpc = "localhost:50051";
+const privateKey =
   "0x678ae9837e83a4b356c01b741e36a9d4ef3ac916a843e8ae7d37b9dd2045f963";
+const address = "0x3c7539cd57b7E03f722C3AEb636247188b25dcC4";
 
-const { toWei } = Web3.utils;
+describe("constructor", () => {
+  test("should set properties correctly", () => {
+    const vu = new VU({
+      index,
+      id,
+      privateKey,
+      rpc,
+      grpc
+    });
+    expect(vu.id).toBe(id);
+    expect(vu.index).toBe(index);
+    expect(vu.rpc).toBe(rpc);
+    expect(vu.grpc).toBe(grpc);
+    expect(vu.faucetClient).toBeTruthy();
+    expect(vu.web3).toBeTruthy();
+    expect(vu.account.address).toBe(address);
+    expect(vu.account.privateKey).toBe(privateKey);
+    expect(vu.account.signTransaction).toBeTruthy();
+    expect(vu.account.sign).toBeTruthy();
+    expect(vu.account.encrypt).toBeTruthy();
+  });
 
-describe("VU", () => {
-  let web3;
+  test("should throw when rpc is not set", () => {
+    expect(
+      () =>
+        new VU({
+          index,
+          id,
+          privateKey,
+          grpc
+        })
+    ).toThrow();
+  });
+
+  test("should throw when grpc is not set", () => {
+    expect(
+      () =>
+        new VU({
+          index,
+          id,
+          privateKey,
+          rpc
+        })
+    ).toThrow();
+  });
+
+  test("should throw when private key is not set", () => {
+    expect(
+      () =>
+        new VU({
+          index,
+          id,
+          rpc,
+          grpc
+        })
+    ).toThrow();
+  });
+});
+
+describe("class methods", () => {
   let vu;
-  let server;
-
-  const newAddress = () => web3.eth.accounts.create().address;
-  const newPrivateKey = () => web3.eth.accounts.create().privateKey;
-
-  beforeAll(() => {
-    web3 = new Web3(RPC_URL);
-    server = FaucetServer({
-      grpcUrl: GRPC_URL,
-      faucetPrivateKey: FUNDING_ACCOUNT_PRIVATE
-    });
-  });
-
-  afterAll(async () => {
-    // GRPC has a problem with shutting down, therefore requiring --forceExit on jest.
-    const deferShutdown = new Promise(resolve => {
-      server.tryShutdown(() => {
-        resolve();
-      });
-    });
-    await deferShutdown;
-  });
 
   beforeEach(() => {
     vu = new VU({
-      privateKey: newPrivateKey(),
-      rpc: RPC_URL,
-      grpc: GRPC_URL
+      index,
+      id,
+      privateKey,
+      rpc,
+      grpc
+    });
+  });
+
+  describe("initNonce", () => {
+    test("should set nonce from getNonce()", async () => {
+      const nonce = 437;
+      vu.getNonce = () => nonce;
+
+      expect(vu.nonce).toBe.undefined;
+      await vu.initNonce();
+      expect(vu.nonce).toBe(nonce);
+    });
+
+    test("should not all getNonce() if the nonce is set", async () => {
+      const nonce = 111;
+      vu.getNonce = () => 113;
+
+      vu.nonce = nonce;
+      expect(vu.nonce).toBe(nonce);
+      await vu.initNonce();
+      expect(vu.nonce).toBe(nonce);
+    });
+  });
+
+  describe("getNonce", () => {
+    test("should return nonce from web3", async () => {
+      vu.web3 = {
+        eth: {
+          getTransactionCount: (_address, _status) => {
+            expect(_address).toBe(address);
+            expect(_status).toBe("pending");
+            return 11;
+          }
+        }
+      };
+      const nonce = await vu.getNonce();
+      expect(nonce).toBe(11);
+    });
+  });
+
+  describe("getBalance", () => {
+    test("should return nonce from web3", async () => {
+      vu.web3 = {
+        eth: {
+          getBalance: _address => {
+            expect(_address).toBe(address);
+            return 11;
+          }
+        }
+      };
+      const nonce = await vu.getBalance();
+      expect(nonce).toBe(11);
+    });
+  });
+
+  describe("requestFundRaw", () => {
+    test("should call faucetClient.Fund() and return balance", async () => {
+      const Fund = async (args, cb) => {
+        expect(args.address).toBe("0x3c7539cd57b7E03f722C3AEb636247188b25dcC4");
+        expect(args.amount.toString()).toBe("9999");
+        cb();
+      };
+      vu.web3 = {
+        eth: {
+          getBalance: _address => {
+            expect(_address).toBe(address);
+            return 11;
+          }
+        }
+      };
+      vu.faucetClient.Fund = Fund;
+      const balance = await vu.requestFundRaw("9999");
+      expect(balance).toBe(11);
+    });
+
+    test("should throw on error", async () => {
+      const Fund = async (args, cb) => {
+        cb("Some error has occurred");
+      };
+      vu.faucetClient.Fund = Fund;
+      await expect(vu.requestFundRaw("9999")).rejects.toThrow(
+        "Some error has occurred"
+      );
     });
   });
 
   describe("requestFund", () => {
-    test("should fund VU with funds", async () => {
-      const fund = "100";
-      const finalBalance = await vu.requestFund(fund);
-
-      expect(finalBalance).toEqual(fund);
+    test("wraps the funding function with the reporter", async () => {
+      vu.txWrapper = function testWrapper(name, fn, ...args) {
+        expect(name).toBe("FUNDING");
+        expect(args[0]).toBe("100");
+        expect(this.account.address).toBe(address); // Test that function has been bounded
+        return "Wrapped";
+      };
+      const res = await vu.requestFund("100");
+      expect(res).toBe("Wrapped");
     });
   });
 
   describe("requestMinFund", () => {
-    test("should fund VU with funds", async () => {
-      const intermediateBal = await vu.requestMinFund(500);
-      const finalBalance = await vu.requestMinFund(600);
-
-      expect(intermediateBal).toEqual("500");
-      expect(finalBalance).toEqual("600");
+    test("should fund empty accounts", async () => {
+      vu.getBalance = () => "0";
+      vu.requestFund = fund => {
+        expect(fund.toString()).toBe("999");
+        return "999";
+      };
+      const res = await vu.requestMinFund("999");
+      expect(res).toBe("999");
     });
-    test("should not fund when fund is greater than or equal to VU's balance", async () => {
-      await vu.requestFund(500);
-      const intermediateBalance = await vu.requestMinFund(400);
-      const finalBalance = await vu.requestMinFund(500);
 
-      expect(intermediateBalance).toEqual("500");
-      expect(finalBalance).toEqual("500");
+    test("should fund partially funded accounts", async () => {
+      vu.getBalance = () => "900";
+      vu.requestFund = fund => {
+        expect(fund.toString()).toBe("99");
+        return "999";
+      };
+      const res = await vu.requestMinFund("999");
+      expect(res).toBe("999");
+    });
+
+    test("should not fund accounts with more funds", async () => {
+      vu.getBalance = () => "1000";
+      vu.requestFund = fund => {
+        expect(fund.toString()).toBe("999");
+        return "999";
+      };
+      const res = await vu.requestMinFund("999");
+      expect(res).toBe("1000");
+    });
+  });
+
+  describe("txWrapper", () => {
+    test("should wrap a function, and time it's execution", async () => {
+      const reportedName = "TestAsyncFn";
+      const timeout = 100;
+      const returnedResults = "Done!";
+
+      const testAsyncFn = (a, b, c) => {
+        expect(a).toBe(1);
+        expect(b).toBe(2);
+        expect(c).toBe(3);
+        return new Promise(resolve =>
+          setTimeout(() => {
+            resolve(returnedResults);
+          }, timeout)
+        );
+      };
+
+      vu.reportTx = ({ name, start, end, duration, error, data }) => {
+        expect(name).toBe(reportedName);
+        expect(duration).toBeGreaterThan(timeout);
+        expect(start).toBeLessThan(end);
+        expect(end).toBeLessThan(Date.now());
+        expect(error).toBe.false;
+        expect(data).toBe(returnedResults);
+        return data;
+      };
+
+      const res = await vu.txWrapper(reportedName, testAsyncFn, 1, 2, 3);
+      expect(res).toBe(returnedResults);
+    });
+  });
+
+  describe("reportTx", () => {
+    test("should not do anything if not ran as a child process", () => {
+      sinon.stub(process, "send");
+      vu.reportTx({ foo: "bar" });
+      expect(process.send.firstCall.args[0]).toEqual({
+        foo: "bar",
+        vu: 1337,
+        type: "TX"
+      });
+      process.send.restore();
+    });
+  });
+
+  describe("signTransaction", () => {
+    test("should use web3 account to sign the transaction", async () => {
+      const testTx = { foo: "bar" };
+      vu.account.signTransaction = tx => {
+        expect(tx).toEqual(testTx);
+        return "Signed";
+      };
+      const signedTx = await vu.signTransaction(testTx);
+      expect(signedTx).toBe("Signed");
+    });
+  });
+
+  describe("incrementNonce", () => {
+    test("should increase the nonce by 1", async () => {
+      vu.nonce = 999;
+      await vu.incrementNonce();
+      expect(vu.nonce).toBe(1000);
+    });
+
+    test("should initialise nonce if it is not found", async () => {
+      vu.initNonce = () => {
+        vu.nonce = 999;
+      };
+      await vu.incrementNonce();
+      expect(vu.nonce).toBe(1000);
     });
   });
 
   describe("signAndSendTransaction", () => {
-    test("should send a transaction", async () => {
-      await vu.requestFund(toWei("0.05", "ether"));
-      const receiver = newAddress();
-      const nonce = await vu.getNonce();
-      const tx = {
-        gas: 21000,
-        to: receiver,
-        from: vu.address,
-        value: toWei("0.01", "ether"),
-        nonce
+    test("should sign, send and record transaction", async () => {
+      vu.signTransaction = tx => {
+        expect(tx).toEqual({
+          foo: "bar",
+          nonce: 9
+        });
+        return { rawTransaction: "Signed Raw Tx" };
       };
-      await vu.signAndSendTransaction(tx);
-      const receiverBalance = await web3.eth.getBalance(receiver);
-      expect(receiverBalance).toEqual(toWei("0.01", "ether"));
+      vu.web3.eth.sendSignedTransaction = tx => {
+        expect(tx).toEqual("Signed Raw Tx");
+        return "Tx Receipt";
+      };
+      vu.nonce = 9;
+      const receipt = await vu.signAndSendTransaction({ foo: "bar" });
+      expect(receipt).toEqual("Tx Receipt");
     });
   });
 });
