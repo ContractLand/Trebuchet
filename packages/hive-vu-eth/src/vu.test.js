@@ -37,7 +37,9 @@ describe("VU", () => {
 
   beforeEach(() => {
     vu = new VU({
-      privateKey: newPrivateKey()
+      privateKey: newPrivateKey(),
+      rpc: RPC_URL,
+      grpc: GRPC_URL
     });
   });
 
