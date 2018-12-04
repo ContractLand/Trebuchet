@@ -44,7 +44,7 @@ class VirtualUserEth {
       this.faucetClient.Fund(
         { address: this.account.address, amount: toBN(fund) },
         (err, response) => {
-          if (err) return reject(err);
+          if (err) return reject(new Error(err));
           return resolve(response);
         }
       );

@@ -132,4 +132,80 @@ describe("class methods", () => {
       expect(nonce).toBe(11);
     });
   });
+
+  describe("requestFundRaw", () => {
+    test("should call faucetClient.Fund() and return balance", async () => {
+      const Fund = async (args, cb) => {
+        expect(args.address).toBe("0x3c7539cd57b7E03f722C3AEb636247188b25dcC4");
+        expect(args.amount.toString()).toBe("9999");
+        cb();
+      };
+      vu.web3 = {
+        eth: {
+          getBalance: _address => {
+            expect(_address).toBe(address);
+            return 11;
+          }
+        }
+      };
+      vu.faucetClient.Fund = Fund;
+      const balance = await vu.requestFundRaw("9999");
+      expect(balance).toBe(11);
+    });
+
+    test("should throw on error", async () => {
+      const Fund = async (args, cb) => {
+        cb("Some error has occurred");
+      };
+      vu.faucetClient.Fund = Fund;
+      await expect(vu.requestFundRaw("9999")).rejects.toThrow(
+        "Some error has occurred"
+      );
+    });
+  });
+
+  describe("requestFund", () => {
+    test("wraps the funding function with the reporter", async () => {
+      vu.txWrapper = function testWrapper(name, fn, ...args) {
+        expect(name).toBe("FUNDING");
+        expect(args[0]).toBe("100");
+        expect(this.account.address).toBe(address); // Test that function has been bounded
+        return "Wrapped";
+      };
+      const res = await vu.requestFund("100");
+      expect(res).toBe("Wrapped");
+    });
+  });
+
+  describe("requestMinFund", () => {
+    test("should fund empty accounts", async () => {
+      vu.getBalance = () => "0";
+      vu.requestFund = fund => {
+        expect(fund.toString()).toBe("999");
+        return "999";
+      };
+      const res = await vu.requestMinFund("999");
+      expect(res).toBe("999");
+    });
+
+    test("should fund partially funded accounts", async () => {
+      vu.getBalance = () => "900";
+      vu.requestFund = fund => {
+        expect(fund.toString()).toBe("99");
+        return "999";
+      };
+      const res = await vu.requestMinFund("999");
+      expect(res).toBe("999");
+    });
+
+    test("should not fund accounts with more funds", async () => {
+      vu.getBalance = () => "1000";
+      vu.requestFund = fund => {
+        expect(fund.toString()).toBe("999");
+        return "999";
+      };
+      const res = await vu.requestMinFund("999");
+      expect(res).toBe("1000");
+    });
+  });
 });
