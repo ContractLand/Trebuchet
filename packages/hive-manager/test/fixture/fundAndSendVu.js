@@ -4,8 +4,6 @@ const Web3 = require("web3");
 const RPC = "http://localhost:8545";
 const GRPC_URL = "localhost:50051";
 class Actor extends VU {
-  // eslint-disable-next-line class-methods-use-this
-
   async start() {
     // Request for some ether from the faucet
     await this.requestMinFund(Web3.utils.toWei("0.01", "ether"));
@@ -16,9 +14,7 @@ class Actor extends VU {
       gas: 21000
     };
     await this.signAndSendTransaction(tx);
-
     await this.signAndSendTransaction(tx);
-
     await this.signAndSendTransaction(tx);
   }
 }

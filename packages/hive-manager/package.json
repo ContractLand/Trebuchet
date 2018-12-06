@@ -6,8 +6,9 @@
   "scripts": {
     "lint": "eslint . --ext .js --max-warnings 0",
     "lint:fix": "eslint . --ext .js --fix",
-    "test": "nodemon --watch src src/manager.test.js",
-    "test:watch": "jest --watch --forceExit --verbose",
+    "t": "nodemon --watch src src/testScript.js",
+    "test": "jest",
+    "test:watch": "jest --watch --verbose=false",
     "network": "ganache-cli -b 5 -m \"deputy apology card solution wage spot tray choice thing hollow peanut matrix\""
   },
   "author": "",
@@ -15,13 +16,15 @@
   "dependencies": {
     "babel-eslint": "^10.0.1",
     "bottleneck": "^2.13.0",
+    "debug": "^4.1.0",
     "hive-faucet-eth": "^0.0.7",
     "hive-report-template": "^0.0.7",
     "hive-vu-eth": "^0.0.7",
     "jest": "^23.6.0",
     "lodash": "^4.17.11",
     "tmp": "^0.0.33",
-    "uuid": "^3.3.2"
+    "uuid": "^3.3.2",
+    "web3": "^1.0.0-beta.36"
   },
   "devDependencies": {
     "babel-eslint": "^10.0.1",
@@ -33,7 +36,8 @@
     "eslint-plugin-jest": "^22.0.0",
     "eslint-plugin-prettier": "^2.6.2",
     "nodemon": "^1.18.5",
-    "prettier": "^1.14.2"
+    "prettier": "^1.14.2",
+    "sinon": "^7.1.1"
   },
   "gitHead": "a5e5a49165bd7c0f7eefa2ddf736464123360af3"
 }

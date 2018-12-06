@@ -1,27 +1,26 @@
 const Bottleneck = require("bottleneck");
 const { spawn } = require("child_process");
+const debug = require("debug");
 const { v4: uuid } = require("uuid");
 const fs = require("fs");
 const { join } = require("path");
 const tmp = require("tmp");
 const reportGenerator = require("hive-report-template");
+const {
+  DEFAULT_RAMP_PERIOD,
+  DEFAULT_CONCURRENCY,
+  DEFAULT_ACTIVE_PERIOD,
+  DEFAULT_COOLING_PERIOD,
+  DEFAULT_ONLINE_REPORTING_PERIOD,
+  DEFAULT_REPORT_PATH,
+  DEFAULT_TX_REPORT_NAME,
+  DEFAULT_VU_REPORT_NAME,
+  STAGES
+} = require("./config");
 
-const DEFAULT_RAMP_PERIOD = 5000;
-const DEFAULT_CONCURRENCY = 10;
-const DEFAULT_ACTIVE_PERIOD = 55000;
-const DEFAULT_COOLING_PERIOD = 10000;
-const DEFAULT_ONLINE_REPORTING_PERIOD = 1000;
-const DEFAULT_REPORT_PATH = join(__dirname, "../load_test_report");
-const DEFAULT_TX_REPORT_NAME = "txReport.json";
-const DEFAULT_VU_REPORT_NAME = "vuReport.json";
-
-const STAGES = {
-  INIT: "INIT",
-  RAMP_UP: "RAMP_UP",
-  ACTIVE: "ACTIVE",
-  COOL_OFF: "COOL_OFF",
-  TERMINATED: "TERMINATED"
-};
+const logReport = debug("manager:report:terminal");
+const logStage = debug("manager:test-stage");
+const logTxReport = debug("manager:report:vu-tx");
 
 class Manager {
   constructor({
@@ -33,7 +32,8 @@ class Manager {
     coolingTimeout = DEFAULT_COOLING_PERIOD,
     onlineReportingPeriod = DEFAULT_ONLINE_REPORTING_PERIOD,
     reportPath = DEFAULT_REPORT_PATH
-  }) {
+  } = {}) {
+    if (!vuScript) throw new Error("No VU script is supplied");
     // Test scripts
     this.setupScript = setupScript;
     this.vuScript = vuScript;
@@ -56,30 +56,51 @@ class Manager {
     this.vuLimiter = new Bottleneck({ maxConcurrent: this.currentConcurrency });
 
     // Reporting states
+    this.reporter = reportGenerator;
     this.runningInterval = null;
     this.txReports = [];
     this.vuReports = [];
     this.reportPath = reportPath;
   }
 
+  // Internal function to start setup
   async setup() {
     if (this.setupScript) {
       // eslint-disable-next-line global-require,import/no-dynamic-require
-      await require(this.setupScript)();
+      await require(this.setupScript).bind(this)();
     }
   }
 
   async runTest() {
     await this.setup();
+    this.schedulerSetup();
     this.startRampUp();
   }
 
+  transitStage(stage) {
+    this.stage = stage;
+    logStage(`Current stage: ${stage}`);
+  }
+
+  schedulerSetup() {
+    this.vuLimiter.on("empty", () => {
+      if (this.stage === STAGES.RAMP_UP || this.stage === STAGES.ACTIVE) {
+        this.scheduleVirtualUser();
+      } else if (
+        this.stage === STAGES.COOL_OFF ||
+        this.stage === STAGES.TERMINATED
+      ) {
+        this.softStop();
+      }
+    });
+  }
+
   onlineReporting() {
-    console.log(this.vuLimiter.counts());
+    logReport(this.vuLimiter.counts());
   }
 
   startRampUp() {
-    this.stage = STAGES.RAMP_UP;
+    this.transitStage(STAGES.RAMP_UP);
     const rampUp = () => {
       if (this.currentConcurrency < this.concurrency) {
         this.currentConcurrency += 1;
@@ -90,16 +111,7 @@ class Manager {
         this.startActive();
       }
     };
-    this.vuLimiter.on("empty", () => {
-      if (this.stage === STAGES.RAMP_UP || this.stage === STAGES.ACTIVE) {
-        this.scheduleVirtualUser();
-      } else if (
-        this.stage === STAGES.COOL_OFF ||
-        this.stage === STAGES.TERMINATED
-      ) {
-        this.hardStop();
-      }
-    });
+
     this.rampUpInterval = setInterval(
       rampUp,
       this.rampPeriod / this.concurrency
@@ -111,8 +123,7 @@ class Manager {
   }
 
   startActive() {
-    this.stage = STAGES.ACTIVE;
-    console.log("STAGE TRANSITED:", this.stage);
+    this.transitStage(STAGES.ACTIVE);
     clearInterval(this.rampUpInterval);
     setTimeout(() => {
       this.startCoolOff();
@@ -120,28 +131,21 @@ class Manager {
   }
 
   startCoolOff() {
-    this.stage = STAGES.COOL_OFF;
-    console.log("STAGE TRANSITED:", this.stage);
+    this.transitStage(STAGES.COOL_OFF);
     this.vuLimiter.stop({ dropWaitingJobs: false });
-    console.log("COOOOOOLING");
     this.hardstopTimeout = setTimeout(() => {
       this.hardStop();
     }, this.coolingTimeout);
   }
 
-  // Hardstop and stop both races to here
-  // eslint-disable-next-line class-methods-use-this
-  hardStop() {
-    // If all the child process ends before the hardstop, clear timeout and stop anyway
-    if (this.hardstopTimeout) {
-      console.log("Stopping when child process terminates");
-      clearTimeout(this.hardstopTimeout);
-    } else {
-      console.log("HARD STOPPED");
-    }
-    clearInterval(this.runningInterval);
-    this.stage = STAGES.TERMINATED;
+  softStop() {
+    clearTimeout(this.hardstopTimeout);
+    this.hardStop();
+  }
 
+  hardStop() {
+    clearInterval(this.runningInterval);
+    this.transitStage(STAGES.TERMINATED);
     this.generateReport();
   }
 
@@ -153,18 +157,13 @@ class Manager {
     fs.writeFileSync(txReportPath, JSON.stringify(this.txReports, null, 2));
     fs.writeFileSync(vuReportPath, JSON.stringify(this.vuReports, null, 2));
 
-    reportGenerator(vuReportPath, txReportPath, this.reportPath);
+    this.reporter(vuReportPath, txReportPath, this.reportPath);
     process.exit();
   }
 
-  // eslint-disable-next-line class-methods-use-this
-  processMessage(report) {
-    // console.log("Processing report");
-    if (report.type === "TX") {
-      this.txReports.push(report);
-    } else if (report.type === "VU") {
-      this.vuReports.push(report);
-    }
+  processTxReport(report) {
+    logTxReport(report);
+    this.txReports.push(report);
   }
 
   // Run a virtual user in the queue
@@ -172,11 +171,11 @@ class Manager {
     this.vuLimiter.schedule(this.runVirtualUser.bind(this));
   }
 
-  // Can consider using a fixed list of actors instead of using random keys
   async runVirtualUser() {
     const index = this.vuIndex;
     this.vuIndex += 1;
     const id = uuid();
+    const logVu = debug(`vu:${id}`);
 
     const start = Date.now();
     const proc = new Promise((resolve, reject) => {
@@ -189,31 +188,29 @@ class Manager {
         stdio: ["pipe", "pipe", "pipe", "ipc"]
       });
 
-      // Print stdout
       virtualUser.stdout.on("data", data => {
-        console.log(`stdout: ${data}`);
+        logVu(`stdout: ${data}`);
       });
 
-      // Print stderr
       virtualUser.stderr.on("data", data => {
-        console.log(`stderr: ${data}`);
+        logVu(`stderr: ${data}`);
       });
 
-      // Async process ends when child process dies
       virtualUser.on("close", code => {
         if (code === 0) {
           resolve();
         } else {
           reject();
         }
-        // console.log(`child process exited with code ${code}`);
+        logVu(`exited`);
       });
 
       // Handle messages from child processes
-      virtualUser.on("message", this.processMessage.bind(this));
+      virtualUser.on("message", this.processTxReport.bind(this));
 
       // Start the child process by sending it initial state
       virtualUser.send(initialState);
+      logVu(`started`);
     });
     await proc;
     const end = Date.now();
