@@ -1,4 +1,4 @@
-const VU = require("hive-vu-eth");
+const VU = require("trebuchet-vu-eth");
 
 const sleep = t => new Promise(resolve => setTimeout(resolve, t));
 

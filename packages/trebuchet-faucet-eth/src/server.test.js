@@ -1,4 +1,4 @@
-const { FaucetClient } = require("hive-grpc");
+const { FaucetClient } = require("trebuchet-grpc");
 const FaucetServer = require("./server");
 
 const GRPC_URL = "localhost:50051";

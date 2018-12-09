@@ -1,4 +1,4 @@
-const FaucetServer = require("hive-faucet-eth");
+const FaucetServer = require("trebuchet-faucet-eth");
 
 const RPC = "http://localhost:8545";
 const GRPC = "localhost:50051";

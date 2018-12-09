@@ -5,7 +5,7 @@ const { v4: uuid } = require("uuid");
 const fs = require("fs");
 const { join } = require("path");
 const tmp = require("tmp");
-const reportGenerator = require("hive-report-template");
+const reportGenerator = require("trebuchet-report-template");
 const {
   DEFAULT_RAMP_PERIOD,
   DEFAULT_CONCURRENCY,

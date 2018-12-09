@@ -1,4 +1,4 @@
-const FaucetServer = require("hive-faucet-eth");
+const FaucetServer = require("trebuchet-faucet-eth");
 const Web3 = require("web3");
 const VU = require("../src/vu");
 

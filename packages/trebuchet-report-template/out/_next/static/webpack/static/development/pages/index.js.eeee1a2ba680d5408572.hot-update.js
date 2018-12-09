@@ -15,7 +15,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _src_components_ConcurrencyGraph__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../src/components/ConcurrencyGraph */ "./src/components/ConcurrencyGraph.js");
 /* harmony import */ var _src_components_StatsRow__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../src/components/StatsRow */ "./src/components/StatsRow.js");
 /* harmony import */ var _src_components_DistributionChart__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../src/components/DistributionChart */ "./src/components/DistributionChart.js");
-var _jsxFileName = "/Users/raymondyeh/Desktop/chain-hive/packages/hive-report-template/pages/index.js";
+var _jsxFileName = "/Users/raymondyeh/Desktop/chain-hive/packages/trebuchet-report-template/pages/index.js";
 
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 

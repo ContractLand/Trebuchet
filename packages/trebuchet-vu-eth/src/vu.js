@@ -1,4 +1,4 @@
-const { FaucetClient } = require("hive-grpc");
+const { FaucetClient } = require("trebuchet-grpc");
 const Web3 = require("web3");
 
 const { toBN } = Web3.utils;

@@ -1,4 +1,4 @@
-const VU = require("hive-vu-eth");
+const VU = require("trebuchet-vu-eth");
 const Web3 = require("web3");
 
 const RPC = "http://localhost:8545";

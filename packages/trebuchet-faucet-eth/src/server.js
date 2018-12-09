@@ -1,4 +1,4 @@
-const { FaucetServer } = require("hive-grpc");
+const { FaucetServer } = require("trebuchet-grpc");
 const Funder = require("./funder");
 
 const DEFAULT_GRPC_URL = "0.0.0.0:50051";

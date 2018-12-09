@@ -15,7 +15,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var prop_types__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(prop_types__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! lodash */ "./node_modules/lodash/lodash.js");
 /* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(lodash__WEBPACK_IMPORTED_MODULE_2__);
-var _jsxFileName = "/Users/raymondyeh/Desktop/chain-hive/packages/hive-report-template/src/components/StatsRow.js";
+var _jsxFileName = "/Users/raymondyeh/Desktop/chain-hive/packages/trebuchet-report-template/src/components/StatsRow.js";
 
 
 
