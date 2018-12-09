@@ -1,6 +1,6 @@
 {
   "name": "trebuchet-faucet-eth",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "",
   "main": "src/server.js",
   "scripts": {
@@ -16,9 +16,9 @@
     "await-semaphore": "^0.1.3",
     "bn.js": "^4.11.8",
     "event-stream": "^3.3.4",
-    "trebuchet-grpc": "^0.0.1",
     "jest": "^23.6.0",
     "lodash": "^4.17.11",
+    "trebuchet-grpc": "^0.0.2",
     "web3": "^1.0.0-beta.36"
   },
   "devDependencies": {
