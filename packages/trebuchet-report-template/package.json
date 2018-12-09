@@ -1,6 +1,6 @@
 {
-  "name": "hive-report-template",
-  "version": "0.0.7",
+  "name": "trebuchet-report-template",
+  "version": "0.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {

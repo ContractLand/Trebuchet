@@ -1,6 +1,6 @@
 {
-  "name": "hive-grpc",
-  "version": "0.0.7",
+  "name": "trebuchet-grpc",
+  "version": "0.0.1",
   "description": "",
   "main": "src/index.js",
   "scripts": {

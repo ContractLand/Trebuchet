@@ -1,12 +1,12 @@
 {
-  "name": "hive-vu-eth",
-  "version": "0.0.7",
+  "name": "trebuchet-manager",
+  "version": "0.0.1",
   "description": "",
   "main": "src/index.js",
   "scripts": {
     "lint": "eslint . --ext .js --max-warnings 0",
     "lint:fix": "eslint . --ext .js --fix",
-    "e2e": "jest --config=\"e2e/jest.config.js\" --forceExit",
+    "t": "nodemon --watch src src/testScript.js",
     "test": "jest",
     "test:watch": "jest --watch --verbose=false",
     "network": "ganache-cli -b 5 -m \"deputy apology card solution wage spot tray choice thing hollow peanut matrix\""
@@ -15,11 +15,16 @@
   "license": "ISC",
   "dependencies": {
     "babel-eslint": "^10.0.1",
-    "event-stream": "^3.3.4",
-    "hive-faucet-eth": "^0.0.7",
-    "hive-grpc": "^0.0.7",
+    "bottleneck": "^2.13.0",
+    "debug": "^4.1.0",
+    "trebuchet-faucet-eth": "^0.0.1",
+    "trebuchet-report-template": "^0.0.1",
+    "trebuchet-vu-eth": "^0.0.1",
     "jest": "^23.6.0",
-    "web3": "^1.0.0-beta.26"
+    "lodash": "^4.17.11",
+    "tmp": "^0.0.33",
+    "uuid": "^3.3.2",
+    "web3": "^1.0.0-beta.36"
   },
   "devDependencies": {
     "babel-eslint": "^10.0.1",
@@ -30,7 +35,7 @@
     "eslint-plugin-import": "^2.14.0",
     "eslint-plugin-jest": "^22.0.0",
     "eslint-plugin-prettier": "^2.6.2",
-    "hive-faucet-eth": "^0.0.1",
+    "nodemon": "^1.18.5",
     "prettier": "^1.14.2",
     "sinon": "^7.1.1"
   },
