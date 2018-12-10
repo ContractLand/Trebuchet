@@ -1,5 +1,4 @@
-const { FaucetClient } = require("trebuchet-grpc");
-const FaucetServer = require("./server");
+const { FaucetServer, FaucetClient } = require("./faucet");
 
 const GRPC_URL = "localhost:50051";
 const FUNDING_ACCOUNT_PRIVATE =

@@ -1,4 +1,4 @@
-const { FaucetClient } = require("trebuchet-grpc");
+const { FaucetClient } = require("trebuchet-faucet-eth");
 const VU = require("trebuchet-vu");
 const Web3 = require("web3");
 
