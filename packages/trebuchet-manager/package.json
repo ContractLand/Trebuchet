@@ -6,6 +6,7 @@
   "scripts": {
     "lint": "eslint . --ext .js --max-warnings 0",
     "lint:fix": "eslint . --ext .js --fix",
+    "e2e": "DEBUG=\"*\" node e2e/runner.js",
     "t": "nodemon --watch src src/testScript.js",
     "test": "jest",
     "test:watch": "jest --watch --verbose=false",
@@ -22,6 +23,7 @@
     "tmp": "^0.0.33",
     "trebuchet-faucet-eth": "^0.0.3",
     "trebuchet-report-template": "^0.0.3",
+    "trebuchet-vu": "^0.0.2",
     "trebuchet-vu-eth": "^0.0.3",
     "uuid": "^3.3.2",
     "web3": "^1.0.0-beta.36"
