@@ -20,6 +20,7 @@
     "lodash": "^4.17.11",
     "tmp": "^0.0.33",
     "trebuchet-report-template": "^0.0.3",
+    "trebuchet-vu": "^0.0.2",
     "uuid": "^3.3.2"
   },
   "devDependencies": {
@@ -34,8 +35,7 @@
     "jest": "^23.6.0",
     "nodemon": "^1.18.5",
     "prettier": "^1.14.2",
-    "sinon": "^7.1.1",
-    "trebuchet-vu": "^0.0.2"
+    "sinon": "^7.1.1"
   },
   "gitHead": "a5e5a49165bd7c0f7eefa2ddf736464123360af3"
 }

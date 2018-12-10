@@ -1,4 +1,4 @@
-const VU = require("trebuchet-vu");
+const { bootstrap, VU } = require("trebuchet-vu");
 const { Sleep } = require("./utils");
 
 class TestVU extends VU {
@@ -10,15 +10,11 @@ class TestVU extends VU {
     return this.txWrapper("FUNDING", Sleep.bind(this), timeout);
   }
 
-  async start() {
+  async run() {
     await this.testFn(20);
     await this.testFn(50);
     await this.testFn(100);
   }
 }
 
-process.on("message", async state => {
-  const vu = new TestVU(state);
-  await vu.start();
-  process.exit();
-});
+bootstrap(TestVU);
