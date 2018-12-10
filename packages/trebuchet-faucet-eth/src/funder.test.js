@@ -1,88 +1,111 @@
-const BN = require("bn.js");
-const Web3 = require("web3");
-const { times, zipWith, every } = require("lodash");
+const sinon = require("sinon");
 const Funder = require("./funder");
 
-const RPC = "http://localhost:8545";
-const FUNDING_ACCOUNT_PRIVATE =
+const fundingAccount =
   "0x678ae9837e83a4b356c01b741e36a9d4ef3ac916a843e8ae7d37b9dd2045f963";
-const FUNDING_ACCOUNT_ADDRESS = "0x3c7539cd57b7E03f722C3AEb636247188b25dcC4";
+const rpc = "http://localhost:8545";
 
-test("constructor", () => {
-  const funder = new Funder({
-    rpc: RPC,
-    fundingAccount: FUNDING_ACCOUNT_PRIVATE
-  });
-  expect(funder.rpc).toBe(RPC);
-  expect(funder.web3).toBeTruthy();
-  expect(funder.account.address).toBe(FUNDING_ACCOUNT_ADDRESS);
-  expect(funder.account.privateKey).toBe(FUNDING_ACCOUNT_PRIVATE);
-});
+describe("funder", () => {
+  describe("constructor", () => {
+    test("should set properties correctly", () => {
+      const funder = new Funder({
+        rpc,
+        fundingAccount
+      });
+      expect(funder.rpc).toBe(rpc);
+      expect(funder.web3).toBeTruthy();
+      expect(funder.account.privateKey).toBe(fundingAccount);
+      expect(funder.account.address).toBe(
+        "0x3c7539cd57b7E03f722C3AEb636247188b25dcC4"
+      );
+      expect(funder.mutex).toBeTruthy();
+    });
 
-describe("methods", () => {
-  let web3;
-  let funder;
+    test("should throw if rpc is not set", () => {
+      expect(
+        () =>
+          new Funder({
+            fundingAccount
+          })
+      ).toThrow("RPC and fundingAccount needs to be defined");
+    });
 
-  beforeAll(() => {
-    web3 = new Web3(RPC);
-    funder = new Funder({
-      rpc: RPC,
-      fundingAccount: FUNDING_ACCOUNT_PRIVATE
+    test("should throw if fundingAccount is not set", () => {
+      expect(
+        () =>
+          new Funder({
+            rpc
+          })
+      ).toThrow("RPC and fundingAccount needs to be defined");
     });
   });
 
-  describe("fund", () => {
-    test("single transaction", async () => {
-      const amountToFund = "100";
-      const accountToFund = "0x27e2bfc8de48d61cb92bce9b42bb3d20e366312b";
+  describe("methods", () => {
+    let funder;
 
-      const balanceBefore = await web3.eth.getBalance(accountToFund);
-      const beforeBn = new BN(balanceBefore);
+    beforeEach(() => {
+      funder = new Funder({
+        rpc,
+        fundingAccount
+      });
+    });
 
-      const fundingTx = await funder.fund(accountToFund, amountToFund);
+    describe("initNonce", () => {
+      test("should return nonce if it's defined", async () => {
+        funder.nonce = 2;
+        const nonce = await funder.initNonce();
+        expect(nonce).toBe(2);
+      });
 
-      const balanceAfter = await web3.eth.getBalance(accountToFund);
-      const afterBn = new BN(balanceAfter);
+      test("should get nonce from node if nonce is not defined", async () => {
+        funder.web3 = { eth: { getTransactionCount: sinon.stub() } };
+        funder.web3.eth.getTransactionCount.resolves(5);
+        const nonce = await funder.initNonce();
+        expect(nonce).toBe(5);
+        expect(funder.web3.eth.getTransactionCount.called).toBe(true);
+        expect(funder.web3.eth.getTransactionCount.args[0]).toEqual([
+          "0x3c7539cd57b7E03f722C3AEb636247188b25dcC4",
+          "pending"
+        ]);
+      });
+    });
 
-      const diff = afterBn.sub(beforeBn).sub(new BN(amountToFund));
+    describe("fund", () => {
+      test("should wrap transaction creation and signing in a mutex", async () => {
+        let wrappedFn;
+        funder.mutex = {
+          async use(fn) {
+            wrappedFn = fn;
+            await fn();
+          }
+        };
+        funder.nonce = 5;
+        funder.account = {
+          address: "0x3c7539cd57b7E03f722C3AEb636247188b25dcC4",
+          signTransaction: sinon.stub()
+        };
+        funder.account.signTransaction.resolves({
+          rawTransaction: "RAW_TRANSACTION"
+        });
+        funder.web3 = { eth: { sendSignedTransaction: sinon.stub() } };
+        funder.web3.eth.sendSignedTransaction.resolves("TX_RECEIPT");
+        const receipt = await funder.fund("receiving-account", "100");
 
-      expect(fundingTx).toBeTruthy();
-      expect(diff.toString(10)).toBe("0");
-    }, 20000);
-
-    test("multiple transaction", async () => {
-      const amountToFund = "100";
-      const accounts = times(10, () => web3.eth.accounts.create());
-
-      const balancesBeforePromises = accounts.map(acc =>
-        web3.eth.getBalance(acc.address)
-      );
-      const balancesBefore = await Promise.all(balancesBeforePromises);
-      const balancesBeforeBn = balancesBefore.map(bal => new BN(bal));
-
-      const promises = accounts.map(acc =>
-        funder.fund(acc.address, amountToFund)
-      );
-
-      await Promise.all(promises);
-
-      const balancesAfterPromises = accounts.map(acc =>
-        web3.eth.getBalance(acc.address)
-      );
-      const balancesAfter = await Promise.all(balancesAfterPromises);
-      const balancesAfterBn = balancesAfter.map(bal => new BN(bal));
-
-      const balanceDiff = zipWith(
-        balancesAfterBn,
-        balancesBeforeBn,
-        (after, before) => after.sub(before)
-      );
-
-      const fundedCorrectly = every(
-        balanceDiff,
-        diff => diff.cmp(new BN(amountToFund)) === 0
-      );
-      expect(fundedCorrectly).toBe(true);
-    }, 20000);
+        expect(wrappedFn).toBeTruthy();
+        expect(funder.account.signTransaction.called).toBe(true);
+        expect(funder.account.signTransaction.args[0][0]).toEqual({
+          gas: 21000,
+          to: "receiving-account",
+          from: "0x3c7539cd57b7E03f722C3AEb636247188b25dcC4",
+          value: "0x64",
+          nonce: 5
+        });
+        expect(funder.web3.eth.sendSignedTransaction.called).toBe(true);
+        expect(funder.web3.eth.sendSignedTransaction.args[0][0]).toBe(
+          "RAW_TRANSACTION"
+        );
+        expect(receipt).toBe("TX_RECEIPT");
+      });
+    });
   });
 });

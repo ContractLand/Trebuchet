@@ -5,11 +5,12 @@ const { toHex } = Web3.utils;
 
 class Funder {
   constructor({ rpc, fundingAccount }) {
+    if (!rpc || !fundingAccount)
+      throw new Error("RPC and fundingAccount needs to be defined");
     this.rpc = rpc;
     this.web3 = new Web3(rpc);
     this.account = this.web3.eth.accounts.privateKeyToAccount(fundingAccount);
     this.mutex = new Mutex();
-    this.nonceArray = [];
   }
 
   async initNonce() {
@@ -35,7 +36,6 @@ class Funder {
       await this.initNonce();
       const nonceToUse = this.nonce;
       this.nonce += 1;
-      this.nonceArray.push(nonceToUse);
       const tx = {
         gas: 21000,
         to: account,

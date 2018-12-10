@@ -1,4 +1,4 @@
-const { FaucetServer, FaucetClient } = require("./faucet");
+const { FaucetServer, FaucetClient } = require("../src/faucet");
 
 const GRPC_URL = "localhost:50051";
 const FUNDING_ACCOUNT_PRIVATE =

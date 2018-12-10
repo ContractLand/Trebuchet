@@ -1,8 +1,8 @@
 const grpc = require("grpc");
-const { loadSync } = require("@grpc/proto-loader");
+const loader = require("@grpc/proto-loader");
 
 const protoFromFile = protoPath => {
-  const packageDefinition = loadSync(protoPath, {
+  const packageDefinition = loader.loadSync(protoPath, {
     keepCase: true,
     longs: String,
     enums: String,
@@ -29,5 +29,6 @@ const Server = ({ protoPath, url, services }) => {
 
 module.exports = {
   Client,
-  Server
+  Server,
+  protoFromFile
 };
