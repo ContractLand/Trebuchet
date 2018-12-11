@@ -1,4 +1,5 @@
-const { bootstrap, VU } = require("trebuchet-vu");
+const bootstrap = require("trebuchet-bootstrap");
+const VU = require("trebuchet-vu");
 const { Sleep } = require("./utils");
 
 class TestVU extends VU {
