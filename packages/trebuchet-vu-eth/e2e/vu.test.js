@@ -1,6 +1,7 @@
 const { FaucetServer } = require("trebuchet-faucet-eth");
 const Web3 = require("web3");
 const VU = require("../src/vu");
+const { abi, bytecode } = require("./mintableToken.json");
 
 const RPC_URL = "http://localhost:8545";
 const GRPC_URL = "localhost:50051";
@@ -8,6 +9,20 @@ const FUNDING_ACCOUNT_PRIVATE =
   "0x678ae9837e83a4b356c01b741e36a9d4ef3ac916a843e8ae7d37b9dd2045f963";
 
 const { toWei } = Web3.utils;
+
+const verifyContractMethods = contract => {
+  expect(contract.methods.addMinter).toBeTruthy();
+  expect(contract.methods.mint).toBeTruthy();
+  expect(contract.methods.renounceMinter).toBeTruthy();
+  expect(contract.methods.approve).toBeTruthy();
+  expect(contract.methods.totalSupply).toBeTruthy();
+  expect(contract.methods.transferFrom).toBeTruthy();
+  expect(contract.methods.increaseAllowance).toBeTruthy();
+  expect(contract.methods.balanceOf).toBeTruthy();
+  expect(contract.methods.decreaseAllowance).toBeTruthy();
+  expect(contract.methods.transfer).toBeTruthy();
+  expect(contract.methods.allowance).toBeTruthy();
+};
 
 describe("VU", () => {
   let web3;
@@ -99,6 +114,75 @@ describe("VU", () => {
       await vu.signAndSendTransaction(tx);
       const receiverBalance = await web3.eth.getBalance(receiver);
       expect(receiverBalance).toEqual(toWei("0.03", "ether"));
+    });
+  });
+
+  describe("deployContract", () => {
+    test("should return a deployed contract instance", async () => {
+      await vu.requestFund(toWei("0.05", "ether"));
+      const contract = await vu.deployContract(abi, bytecode.object, {
+        gas: 3000000,
+        gasPrice: 0
+      });
+
+      expect(contract.options.address).toBeTruthy();
+
+      verifyContractMethods(contract);
+    });
+
+    test("deployed contract should work", async () => {
+      await vu.requestFund(toWei("0.05", "ether"));
+      const contract = await vu.deployContract(abi, bytecode.object, {
+        gas: 3000000,
+        gasPrice: 0
+      });
+
+      await contract.methods.mint(vu.account.address, "100000").send({
+        from: vu.account.address,
+        gas: 3000000,
+        gasPrice: 0
+      });
+      const bal = await contract.methods.balanceOf(vu.account.address).call();
+
+      expect(bal).toBe("100000");
+    });
+  });
+
+  describe("loadContract", () => {
+    test("should return a loaded contract", async () => {
+      await vu.requestFund(toWei("0.05", "ether"));
+      const contract = await vu.deployContract(abi, bytecode.object, {
+        gas: 3000000,
+        gasPrice: 0
+      });
+      const contractAddress = contract.options.address;
+      const loadedContract = vu.loadContract(contractAddress, abi);
+
+      // eslint-disable-next-line no-underscore-dangle
+      expect(loadedContract._address).toBeTruthy();
+
+      verifyContractMethods(loadedContract);
+    });
+
+    test("loaded contract should work", async () => {
+      await vu.requestFund(toWei("0.05", "ether"));
+      const contract = await vu.deployContract(abi, bytecode.object, {
+        gas: 3000000,
+        gasPrice: 0
+      });
+      const contractAddress = contract.options.address;
+      const loadedContract = vu.loadContract(contractAddress, abi);
+
+      await loadedContract.methods.mint(vu.account.address, "100000").send({
+        from: vu.account.address,
+        gas: 3000000,
+        gasPrice: 0
+      });
+      const bal = await loadedContract.methods
+        .balanceOf(vu.account.address)
+        .call();
+
+      expect(bal).toBe("100000");
     });
   });
 });

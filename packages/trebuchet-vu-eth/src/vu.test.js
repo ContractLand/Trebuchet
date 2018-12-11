@@ -1,3 +1,4 @@
+const sinon = require("sinon");
 const VU = require("./vu");
 
 // Test parameters
@@ -253,6 +254,93 @@ describe("class methods", () => {
       vu.nonce = 9;
       const receipt = await vu.signAndSendTransaction({ foo: "bar" });
       expect(receipt).toEqual("Tx Receipt");
+    });
+  });
+
+  describe("deployContract", () => {
+    test("should deploy contract with web3", async () => {
+      const deployStub = sinon.stub();
+      const sendStub = sinon.stub();
+      vu.web3 = {
+        eth: {
+          Contract: sinon.stub()
+        }
+      };
+      vu.web3.eth.Contract.returns({ deploy: deployStub });
+      deployStub.returns({ send: sendStub });
+      sendStub.resolves("CONTRACT_INSTANCE");
+
+      const opts = { foo: "bar" };
+      const args = [1, 2, 3];
+
+      await vu.deployContract("JSON_ABI", "BYTECODE", opts, args);
+
+      expect(vu.web3.eth.Contract.called).toBe(true);
+      expect(vu.web3.eth.Contract.args[0]).toEqual(["JSON_ABI"]);
+
+      expect(deployStub.called).toBe(true);
+      expect(deployStub.args[0][0]).toEqual({
+        from: vu.account.address,
+        data: "BYTECODE",
+        arguments: args
+      });
+
+      expect(sendStub.called).toBe(true);
+      expect(sendStub.args[0][0]).toEqual({
+        foo: "bar",
+        from: vu.account.address
+      });
+    });
+
+    test("should deploy contract with empty args", async () => {
+      const deployStub = sinon.stub();
+      const sendStub = sinon.stub();
+      vu.web3 = {
+        eth: {
+          Contract: sinon.stub()
+        }
+      };
+      vu.web3.eth.Contract.returns({ deploy: deployStub });
+      deployStub.returns({ send: sendStub });
+      sendStub.resolves("CONTRACT_INSTANCE");
+
+      const opts = { foo: "bar" };
+
+      await vu.deployContract("JSON_ABI", "BYTECODE", opts);
+
+      expect(vu.web3.eth.Contract.called).toBe(true);
+      expect(vu.web3.eth.Contract.args[0]).toEqual(["JSON_ABI"]);
+
+      expect(deployStub.called).toBe(true);
+      expect(deployStub.args[0][0]).toEqual({
+        from: vu.account.address,
+        data: "BYTECODE",
+        arguments: []
+      });
+
+      expect(sendStub.called).toBe(true);
+      expect(sendStub.args[0][0]).toEqual({
+        foo: "bar",
+        from: vu.account.address
+      });
+    });
+  });
+
+  describe("loadContract", () => {
+    test("should load contract with web3", () => {
+      vu.web3 = {
+        eth: {
+          Contract: sinon.stub()
+        }
+      };
+      vu.web3.eth.Contract.returns("CONTRACT_INSTANCE");
+      vu.loadContract("CONTRACT_ADDRESS", "JSON_ABI");
+      expect(vu.web3.eth.Contract.called).toBe(true);
+      expect(vu.web3.eth.Contract.args[0]).toEqual([
+        "JSON_ABI",
+        "CONTRACT_ADDRESS",
+        { from: vu.account.address }
+      ]);
     });
   });
 });

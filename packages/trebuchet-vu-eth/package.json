@@ -7,6 +7,7 @@
     "lint": "eslint . --ext .js --max-warnings 0",
     "lint:fix": "eslint . --ext .js --fix",
     "e2e": "jest --config=\"e2e/jest.config.js\" --forceExit",
+    "e2e:watch": "jest --config=\"e2e/jest.config.js\" --forceExit --watch --verbose=false",
     "test": "jest",
     "test:watch": "jest --watch --verbose=false",
     "network": "ganache-cli -b 5 -m \"deputy apology card solution wage spot tray choice thing hollow peanut matrix\""
@@ -17,6 +18,7 @@
     "babel-eslint": "^10.0.1",
     "event-stream": "^3.3.4",
     "jest": "^23.6.0",
+    "sinon": "^7.2.0",
     "trebuchet-faucet-eth": "^0.0.4",
     "trebuchet-vu": "^0.0.4",
     "web3": "^1.0.0-beta.26"

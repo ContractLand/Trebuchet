@@ -17,6 +17,7 @@ class VirtualUserEth extends VU {
     this.faucetClient = FaucetClient(this.grpc);
     this.web3 = new Web3(this.rpc);
     this.account = this.web3.eth.accounts.privateKeyToAccount(privateKey);
+    this.web3.eth.accounts.wallet.add(privateKey);
   }
 
   async initNonce() {
@@ -99,6 +100,40 @@ class VirtualUserEth extends VU {
       this.web3.eth.sendSignedTransaction.bind(this),
       signedTx.rawTransaction
     );
+  }
+
+  /**
+   * Deploys a contract on the network with the abi and bytecode
+   * @param  {Object} abi - JSON ABI for the contract
+   * @param  {string} bytecode - Byecode for contract, should start with 0x
+   * @param  {Object} opts - Options for deployment, should contain gas and gasPrice
+   * @param  {Array} args - Array of arguments for contract constructor
+   * @returns {Contract} Instance of web3.contract
+   */
+  async deployContract(abi, bytecode, opts, args = []) {
+    const contractProxy = new this.web3.eth.Contract(abi);
+    const deployment = contractProxy.deploy({
+      from: this.account.address,
+      data: bytecode,
+      arguments: args
+    });
+    const deployedContract = await deployment.send({
+      ...opts,
+      from: this.account.address
+    });
+    return deployedContract;
+  }
+
+  /**
+   * Loads a contract instance from the abi and address of the contract
+   * @param  {string} address - Address for contract, should start with 0x
+   * @param  {Object} abi - JSON ABI for the contract
+   * @returns {Contract} Instance of web3.contract
+   */
+  loadContract(address, abi) {
+    return new this.web3.eth.Contract(abi, address, {
+      from: this.account.address
+    });
   }
 }
 
