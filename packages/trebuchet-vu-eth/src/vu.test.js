@@ -257,7 +257,7 @@ describe("class methods", () => {
     });
   });
 
-  describe("deployContract", () => {
+  describe("deployContractRaw", () => {
     test("should deploy contract with web3", async () => {
       const deployStub = sinon.stub();
       const sendStub = sinon.stub();
@@ -266,6 +266,7 @@ describe("class methods", () => {
           Contract: sinon.stub()
         }
       };
+      vu.wrapContract = contract => contract;
       vu.web3.eth.Contract.returns({ deploy: deployStub });
       deployStub.returns({ send: sendStub });
       sendStub.resolves("CONTRACT_INSTANCE");
@@ -273,7 +274,7 @@ describe("class methods", () => {
       const opts = { foo: "bar" };
       const args = [1, 2, 3];
 
-      await vu.deployContract("JSON_ABI", "BYTECODE", opts, args);
+      await vu.deployContractRaw("JSON_ABI", "BYTECODE", opts, args);
 
       expect(vu.web3.eth.Contract.called).toBe(true);
       expect(vu.web3.eth.Contract.args[0]).toEqual(["JSON_ABI"]);
@@ -300,13 +301,14 @@ describe("class methods", () => {
           Contract: sinon.stub()
         }
       };
+      vu.wrapContract = contract => contract;
       vu.web3.eth.Contract.returns({ deploy: deployStub });
       deployStub.returns({ send: sendStub });
       sendStub.resolves("CONTRACT_INSTANCE");
 
       const opts = { foo: "bar" };
 
-      await vu.deployContract("JSON_ABI", "BYTECODE", opts);
+      await vu.deployContractRaw("JSON_ABI", "BYTECODE", opts);
 
       expect(vu.web3.eth.Contract.called).toBe(true);
       expect(vu.web3.eth.Contract.args[0]).toEqual(["JSON_ABI"]);
@@ -326,6 +328,83 @@ describe("class methods", () => {
     });
   });
 
+  describe("wrapContract", () => {
+    test("should wrap send(), call() and estimateGas() from contract.methods with txWrapper", async () => {
+      const contract = {
+        methods: {
+          contractMethod: sinon.stub()
+        }
+      };
+      const stubbedMethod = {
+        send: sinon.stub(),
+        call: sinon.stub(),
+        estimateGas: sinon.stub()
+      };
+      contract.methods.contractMethod.returns(stubbedMethod);
+
+      stubbedMethod.send.resolves("RESULT_FROM_CONTRACT_METHOD_SEND");
+      stubbedMethod.call.resolves("RESULT_FROM_CONTRACT_METHOD_CALL");
+      stubbedMethod.estimateGas.resolves(
+        "RESULT_FROM_CONTRACT_METHOD_ESTIMATE_GAS"
+      );
+
+      vu.txWrapper = (_name, fn, ...args) => fn(...args);
+      const wrappedContract = vu.wrapContract(contract);
+
+      const sendResult = await wrappedContract.tx
+        .contractMethod("Contract", "Arguments")
+        .send({ gas: 10000 });
+
+      expect(sendResult).toBe("RESULT_FROM_CONTRACT_METHOD_SEND");
+      expect(contract.methods.contractMethod.args[0]).toEqual([
+        "Contract",
+        "Arguments"
+      ]);
+      expect(stubbedMethod.send.args[0][0]).toEqual({ gas: 10000 });
+
+      const callResult = await wrappedContract.tx
+        .contractMethod("Contract", "Arguments2")
+        .call({ gas: 10001 });
+
+      expect(callResult).toBe("RESULT_FROM_CONTRACT_METHOD_CALL");
+      expect(contract.methods.contractMethod.args[1]).toEqual([
+        "Contract",
+        "Arguments2"
+      ]);
+      expect(stubbedMethod.call.args[0][0]).toEqual({ gas: 10001 });
+
+      const estimateResult = await wrappedContract.tx
+        .contractMethod("Contract", "Arguments3")
+        .estimateGas({ gas: 10002 });
+
+      expect(estimateResult).toBe("RESULT_FROM_CONTRACT_METHOD_ESTIMATE_GAS");
+      expect(contract.methods.contractMethod.args[2]).toEqual([
+        "Contract",
+        "Arguments3"
+      ]);
+      expect(stubbedMethod.estimateGas.args[0][0]).toEqual({ gas: 10002 });
+    });
+  });
+
+  describe("deployContract", () => {
+    test("wraps the deploy contract function with the reporter", async () => {
+      vu.txWrapper = sinon.stub();
+      vu.txWrapper.resolves("Wrapped");
+      const res = await vu.deployContract(
+        "JSON_ABI",
+        "BYTECODE",
+        { foo: "bar" },
+        [1, 2]
+      );
+      expect(res).toBe("Wrapped");
+      expect(vu.txWrapper.args[0][0]).toBe("CONTRACT_DEPLOY");
+      expect(vu.txWrapper.args[0][2]).toBe("JSON_ABI");
+      expect(vu.txWrapper.args[0][3]).toBe("BYTECODE");
+      expect(vu.txWrapper.args[0][4]).toEqual({ foo: "bar" });
+      expect(vu.txWrapper.args[0][5]).toEqual([1, 2]);
+    });
+  });
+
   describe("loadContract", () => {
     test("should load contract with web3", () => {
       vu.web3 = {
@@ -334,6 +413,7 @@ describe("class methods", () => {
         }
       };
       vu.web3.eth.Contract.returns("CONTRACT_INSTANCE");
+      vu.wrapContract = contract => contract;
       vu.loadContract("CONTRACT_ADDRESS", "JSON_ABI");
       expect(vu.web3.eth.Contract.called).toBe(true);
       expect(vu.web3.eth.Contract.args[0]).toEqual([

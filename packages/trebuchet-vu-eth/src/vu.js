@@ -103,14 +103,47 @@ class VirtualUserEth extends VU {
   }
 
   /**
+   * @param  {Object} contract - Contract object to be wrapped with tx reporting
+   * @returns  {Object} Contract with .tx which are contract methods but wrapped with tx reporter
+   */
+  wrapContract(contract) {
+    const wrappedMethods = {};
+    const contractMethods = Object.keys(contract.methods);
+    contractMethods.forEach(method => {
+      const wrappedMethod = (...args) => ({
+        send: opts =>
+          this.txWrapper(
+            "CONTRACT_SEND",
+            contract.methods[method](...args).send,
+            opts
+          ),
+        call: opts =>
+          this.txWrapper(
+            "CONTRACT_CALL",
+            contract.methods[method](...args).call,
+            opts
+          ),
+        estimateGas: opts =>
+          this.txWrapper(
+            "CONTRACT_ESTIMATE_GAS",
+            contract.methods[method](...args).estimateGas,
+            opts
+          )
+      });
+      wrappedMethods[method] = wrappedMethod;
+    });
+    return Object.assign({}, contract, { tx: wrappedMethods });
+  }
+
+  /**
    * Deploys a contract on the network with the abi and bytecode
    * @param  {Object} abi - JSON ABI for the contract
    * @param  {string} bytecode - Byecode for contract, should start with 0x
    * @param  {Object} opts - Options for deployment, should contain gas and gasPrice
    * @param  {Array} args - Array of arguments for contract constructor
-   * @returns {Contract} Instance of web3.contract
+   * @returns {Object} Instance of web3.contract
    */
-  async deployContract(abi, bytecode, opts, args = []) {
+  async deployContractRaw(abi, bytecode, opts, args = []) {
     const contractProxy = new this.web3.eth.Contract(abi);
     const deployment = contractProxy.deploy({
       from: this.account.address,
@@ -121,7 +154,18 @@ class VirtualUserEth extends VU {
       ...opts,
       from: this.account.address
     });
-    return deployedContract;
+    return this.wrapContract(deployedContract);
+  }
+
+  async deployContract(abi, bytecode, opts, args) {
+    return this.txWrapper(
+      "CONTRACT_DEPLOY",
+      this.deployContractRaw.bind(this),
+      abi,
+      bytecode,
+      opts,
+      args
+    );
   }
 
   /**
@@ -131,9 +175,10 @@ class VirtualUserEth extends VU {
    * @returns {Contract} Instance of web3.contract
    */
   loadContract(address, abi) {
-    return new this.web3.eth.Contract(abi, address, {
+    const contract = new this.web3.eth.Contract(abi, address, {
       from: this.account.address
     });
+    return this.wrapContract(contract);
   }
 }
 

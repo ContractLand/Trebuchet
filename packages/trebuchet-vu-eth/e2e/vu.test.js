@@ -24,6 +24,20 @@ const verifyContractMethods = contract => {
   expect(contract.methods.allowance).toBeTruthy();
 };
 
+const verifyContractWrapped = contract => {
+  expect(contract.tx.addMinter).toBeTruthy();
+  expect(contract.tx.mint).toBeTruthy();
+  expect(contract.tx.renounceMinter).toBeTruthy();
+  expect(contract.tx.approve).toBeTruthy();
+  expect(contract.tx.totalSupply).toBeTruthy();
+  expect(contract.tx.transferFrom).toBeTruthy();
+  expect(contract.tx.increaseAllowance).toBeTruthy();
+  expect(contract.tx.balanceOf).toBeTruthy();
+  expect(contract.tx.decreaseAllowance).toBeTruthy();
+  expect(contract.tx.transfer).toBeTruthy();
+  expect(contract.tx.allowance).toBeTruthy();
+};
+
 describe("VU", () => {
   let web3;
   let vu;
@@ -128,21 +142,23 @@ describe("VU", () => {
       expect(contract.options.address).toBeTruthy();
 
       verifyContractMethods(contract);
+      verifyContractWrapped(contract);
     });
 
-    test("deployed contract should work", async () => {
+    test.only("deployed contract should work", async () => {
       await vu.requestFund(toWei("0.05", "ether"));
       const contract = await vu.deployContract(abi, bytecode.object, {
         gas: 3000000,
         gasPrice: 0
       });
 
-      await contract.methods.mint(vu.account.address, "100000").send({
+      await contract.tx.mint(vu.account.address, "100000").send({
         from: vu.account.address,
         gas: 3000000,
         gasPrice: 0
       });
-      const bal = await contract.methods.balanceOf(vu.account.address).call();
+
+      const bal = await contract.tx.balanceOf(vu.account.address).call();
 
       expect(bal).toBe("100000");
     });
@@ -162,6 +178,7 @@ describe("VU", () => {
       expect(loadedContract._address).toBeTruthy();
 
       verifyContractMethods(loadedContract);
+      verifyContractWrapped(loadedContract);
     });
 
     test("loaded contract should work", async () => {
@@ -173,14 +190,12 @@ describe("VU", () => {
       const contractAddress = contract.options.address;
       const loadedContract = vu.loadContract(contractAddress, abi);
 
-      await loadedContract.methods.mint(vu.account.address, "100000").send({
+      await loadedContract.tx.mint(vu.account.address, "100000").send({
         from: vu.account.address,
         gas: 3000000,
         gasPrice: 0
       });
-      const bal = await loadedContract.methods
-        .balanceOf(vu.account.address)
-        .call();
+      const bal = await loadedContract.tx.balanceOf(vu.account.address).call();
 
       expect(bal).toBe("100000");
     });
