@@ -5,6 +5,7 @@ const { v4: uuid } = require("uuid");
 const fs = require("fs");
 const { join } = require("path");
 const tmp = require("tmp");
+const logUpdate = require('log-update');
 const reportGenerator = require("trebuchet-report-template");
 const {
   DEFAULT_RAMP_PERIOD,
@@ -51,6 +52,7 @@ class Manager {
     this.vuIndex = 0;
     this.rampUpInterval = null;
     this.hardstopTimeout = null;
+    this.startTime = null;
 
     // Concurrency management
     this.vuLimiter = new Bottleneck({ maxConcurrent: this.currentConcurrency });
@@ -72,6 +74,7 @@ class Manager {
   }
 
   async runTest() {
+    this.startTime = Date.now();
     await this.setup();
     this.schedulerSetup();
     this.startRampUp();
@@ -96,7 +99,16 @@ class Manager {
   }
 
   onlineReporting() {
-    logReport(this.vuLimiter.counts());
+    const report = `
+    STAGE: ${this.stage}
+    Elapsed Time: ${Date.now() - this.startTime} ms
+    ==========================================
+    VU Concurrency: ${this.vuLimiter.counts().EXECUTING}
+    ==========================================
+    VU Executed: ${this.vuReports.length}
+    TX Executed: ${this.txReports.length}
+    `;
+    logUpdate(report);
   }
 
   startRampUp() {
@@ -146,6 +158,7 @@ class Manager {
   hardStop() {
     clearInterval(this.runningInterval);
     this.transitStage(STAGES.TERMINATED);
+    this.onlineReporting();
     this.generateReport();
   }
 

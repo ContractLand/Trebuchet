@@ -8,9 +8,11 @@ const rampPeriod = 100;
 const concurrency = 2;
 const activePeriod = 1000;
 const coolingTimeout = 1000;
+const onlineReportingPeriod = 100;
 
 const manager = new Manager({
   reportPath: join(__dirname, "../load_test_report"),
+  onlineReportingPeriod,
   setupScript: SETUP_SCRIPT,
   vuScript: VU_SCRIPT,
   rampPeriod,
