@@ -145,7 +145,7 @@ describe("VU", () => {
       verifyContractWrapped(contract);
     });
 
-    test.only("deployed contract should work", async () => {
+    test("deployed contract should work", async () => {
       await vu.requestFund(toWei("0.05", "ether"));
       const contract = await vu.deployContract(abi, bytecode.object, {
         gas: 3000000,
