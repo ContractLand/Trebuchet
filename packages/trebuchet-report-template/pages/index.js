@@ -3,6 +3,7 @@ import { concurrencyReport } from "../src/utils/charts";
 import ConcurrencyGraph from "../src/components/ConcurrencyGraph";
 import StatsRow from "../src/components/StatsRow";
 import DistributionGraph from "../src/components/DistributionChart";
+import StatisticsBreakdown from "../src/components/StatisticsBreakdown";
 
 class Index extends React.Component {
   constructor(props) {
@@ -60,6 +61,7 @@ class Index extends React.Component {
             concurrencyReport={txConcurrencyReport}
           />
           <StatsRow report={txReport} concurrencyReport={txConcurrencyReport} />
+          <StatisticsBreakdown txReport={txReport} />
         </div>
       </div>
     );
