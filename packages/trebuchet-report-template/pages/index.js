@@ -53,6 +53,7 @@ class Index extends React.Component {
             concurrencyReport={vuConcurrencyReport}
           />
           <StatsRow report={vuReport} concurrencyReport={vuConcurrencyReport} />
+          <StatisticsBreakdown report={vuReport} />
           <div className="row mt-3">
             <div className="h2">Transactions</div>
           </div>
@@ -61,7 +62,7 @@ class Index extends React.Component {
             concurrencyReport={txConcurrencyReport}
           />
           <StatsRow report={txReport} concurrencyReport={txConcurrencyReport} />
-          <StatisticsBreakdown txReport={txReport} />
+          <StatisticsBreakdown report={txReport} />
         </div>
       </div>
     );
