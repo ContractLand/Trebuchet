@@ -22,7 +22,6 @@ describe("constructor", () => {
     const mgr = new Manager({
       vuScript: TEST_SCRIPT_VU_PATH
     });
-    expect(mgr.vuScript).toBe(TEST_SCRIPT_VU_PATH);
     expect(mgr.rampPeriod).toBe(DEFAULT_RAMP_PERIOD);
     expect(mgr.concurrency).toBe(DEFAULT_CONCURRENCY);
     expect(mgr.activePeriod).toBe(DEFAULT_ACTIVE_PERIOD);
@@ -42,7 +41,6 @@ describe("constructor", () => {
       onlineReportingPeriod: 5000,
       reportPath: "/tmp"
     });
-    expect(mgr.vuScript).toBe(TEST_SCRIPT_VU_PATH);
     expect(mgr.setupScript).toBe(TEST_SCRIPT_SETUP_PATH);
     expect(mgr.rampPeriod).toBe(10000);
     expect(mgr.concurrency).toBe(50);
@@ -50,6 +48,7 @@ describe("constructor", () => {
     expect(mgr.coolingTimeout).toBe(10000);
     expect(mgr.onlineReportingPeriod).toBe(5000);
     expect(mgr.reportPath).toBe("/tmp");
+    expect(mgr.vuPicker).toBeTruthy();
   });
 
   test("should initialise state", () => {
@@ -68,7 +67,7 @@ describe("constructor", () => {
   });
 
   test("should throw if VU script is not present", () => {
-    expect(() => new Manager()).toThrow("No VU script is supplied");
+    expect(() => new Manager()).toThrow();
   });
 });
 

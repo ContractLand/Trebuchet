@@ -5,8 +5,9 @@ const { v4: uuid } = require("uuid");
 const fs = require("fs");
 const { join } = require("path");
 const tmp = require("tmp");
-const logUpdate = require('log-update');
+const logUpdate = require("log-update");
 const reportGenerator = require("trebuchet-report-template");
+const VuPicker = require("./vuPicker");
 const {
   DEFAULT_RAMP_PERIOD,
   DEFAULT_CONCURRENCY,
@@ -19,7 +20,6 @@ const {
   STAGES
 } = require("./config");
 
-const logReport = debug("manager:report:terminal");
 const logStage = debug("manager:test-stage");
 const logTxReport = debug("manager:report:vu-tx");
 
@@ -34,10 +34,9 @@ class Manager {
     onlineReportingPeriod = DEFAULT_ONLINE_REPORTING_PERIOD,
     reportPath = DEFAULT_REPORT_PATH
   } = {}) {
-    if (!vuScript) throw new Error("No VU script is supplied");
     // Test scripts
     this.setupScript = setupScript;
-    this.vuScript = vuScript;
+    this.vuPicker = new VuPicker(vuScript);
 
     // Loadtest parameter
     this.rampPeriod = rampPeriod;
@@ -192,12 +191,13 @@ class Manager {
 
     const start = Date.now();
     const proc = new Promise((resolve, reject) => {
+      const vu = this.vuPicker.getVu();
       const initialState = {
         id,
         index
       };
 
-      const virtualUser = spawn("node", [this.vuScript], {
+      const virtualUser = spawn("node", [vu.script], {
         stdio: ["pipe", "pipe", "pipe", "ipc"]
       });
 
