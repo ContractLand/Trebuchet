@@ -188,10 +188,10 @@ class Manager {
     this.vuIndex += 1;
     const id = uuid();
     const logVu = debug(`vu:${id}`);
+    const vu = this.vuPicker.getVu();
 
     const start = Date.now();
     const proc = new Promise((resolve, reject) => {
-      const vu = this.vuPicker.getVu();
       const initialState = {
         id,
         index
@@ -229,6 +229,7 @@ class Manager {
     const end = Date.now();
     const vuReport = {
       type: "VU",
+      name: vu.name,
       vu: id,
       start,
       end,
