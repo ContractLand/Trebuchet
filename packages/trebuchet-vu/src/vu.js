@@ -1,7 +1,8 @@
 class VirtualUser {
-  constructor({ index, id }) {
+  constructor({ index, id, reporter }) {
     this.id = id;
     this.index = index;
+    this.reporter = reporter;
   }
 
   /**
@@ -26,17 +27,16 @@ class VirtualUser {
   }
 
   /**
-   * Sends a report to parent process through IPC when available
+   * Sends a report to manager through pass-in reporter
    * @param  {Object} data - Data to be sent to manager
    */
   reportTx(data) {
-    if (process.send) {
-      const txReport = {
+    if (this.reporter && this.reporter.reportTransaction) {
+      this.reporter.reportTransaction({
         ...data,
         vu: this.id,
         type: "TX"
-      };
-      process.send(txReport);
+      });
     }
   }
 }

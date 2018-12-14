@@ -4,20 +4,20 @@ const Web3 = require("web3");
 
 const { toBN } = Web3.utils;
 class VirtualUserEth extends VU {
-  constructor({ index, id, privateKey, rpc, grpc }) {
-    super({ index, id });
+  constructor(state) {
+    super(state);
 
-    if (!rpc) throw new Error("RPC endpoint is not defined");
-    if (!grpc) throw new Error("GRPC (faucet) endpoint is not defined");
-    if (!privateKey) throw new Error("Private key is not assigned");
+    if (!state.rpc) throw new Error("RPC endpoint is not defined");
+    if (!state.grpc) throw new Error("GRPC (faucet) endpoint is not defined");
+    if (!state.privateKey) throw new Error("Private key is not assigned");
 
     // For ETH VU
-    this.rpc = rpc;
-    this.grpc = grpc;
+    this.rpc = state.rpc;
+    this.grpc = state.grpc;
     this.faucetClient = FaucetClient(this.grpc);
     this.web3 = new Web3(this.rpc);
-    this.account = this.web3.eth.accounts.privateKeyToAccount(privateKey);
-    this.web3.eth.accounts.wallet.add(privateKey);
+    this.account = this.web3.eth.accounts.privateKeyToAccount(state.privateKey);
+    this.web3.eth.accounts.wallet.add(state.privateKey);
   }
 
   async initNonce() {

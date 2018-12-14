@@ -1,5 +1,6 @@
 const { FaucetServer } = require("trebuchet-faucet-eth");
 const Web3 = require("web3");
+const sinon = require("sinon");
 const VU = require("../src/vu");
 const { abi, bytecode } = require("./mintableToken.json");
 
@@ -68,7 +69,8 @@ describe("VU", () => {
     vu = new VU({
       privateKey: newPrivateKey(),
       rpc: RPC_URL,
-      grpc: GRPC_URL
+      grpc: GRPC_URL,
+      reporter: { reportTransaction: sinon.stub() }
     });
   });
 

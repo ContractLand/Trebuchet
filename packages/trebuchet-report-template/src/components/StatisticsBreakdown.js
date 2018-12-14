@@ -5,7 +5,7 @@ import { groupBy, maxBy, minBy, meanBy } from "lodash";
 const ReportBody = report => {
   const groupedTx = groupBy(report, "name");
 
-  const data = Object.keys(groupedTx).map((name, i) => ({
+  const data = Object.keys(groupedTx).map(name => ({
     name,
     count: groupedTx[name].length,
     min: minBy(groupedTx[name], "duration").duration,
