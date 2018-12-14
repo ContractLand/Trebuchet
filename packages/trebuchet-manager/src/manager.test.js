@@ -338,15 +338,16 @@ describe("methods", () => {
     });
   });
 
-  describe("runVirtualUser", () => {
-    // Timer mock is not working here as the script was not required but spawned
+  describe("runVirtualUser", async () => {
     test("should run a virtual user script", async () => {
       mgr.vuIndex = 5;
       mgr.processTxReport = sinon.stub();
-      await mgr.runVirtualUser();
+
+      const deferred = mgr.runVirtualUser();
+      clock.tick(20);
+      await deferred;
 
       const txReport = mgr.processTxReport.args[0][0];
-      expect(txReport.data).toEqual({ index: 5 });
       expect(txReport.vu).toBeTruthy();
       expect(txReport.type).toBe("TX");
 

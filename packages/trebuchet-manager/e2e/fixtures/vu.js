@@ -1,12 +1,7 @@
-const bootstrap = require("trebuchet-bootstrap");
 const VU = require("trebuchet-vu");
 const { Sleep } = require("./utils");
 
 class TestVU extends VU {
-  constructor({ index, id }) {
-    super({ index, id });
-  }
-
   async testFn(timeout) {
     return this.txWrapper("FUNDING", Sleep.bind(this), timeout);
   }
@@ -18,4 +13,4 @@ class TestVU extends VU {
   }
 }
 
-bootstrap(TestVU);
+module.exports = TestVU;

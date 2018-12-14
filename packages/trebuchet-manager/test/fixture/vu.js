@@ -1,20 +1,17 @@
-process.on("message", async state => {
-  // eslint-disable-next-line no-console
-  console.log("Test stdout");
+const VU = require("trebuchet-vu");
 
-  // eslint-disable-next-line no-console
-  console.error("Test stderr");
-
-  await new Promise(resolve => {
-    setTimeout(() => {
-      const txReport = {
-        data: { index: state.index },
-        vu: state.id,
-        type: "TX"
-      };
-      process.send(txReport);
-      resolve();
-    }, 20);
+const Sleep = timeout =>
+  new Promise(resolve => {
+    setTimeout(resolve, timeout);
   });
-  process.exit();
-});
+class TestVU extends VU {
+  async testFn(timeout) {
+    return this.txWrapper("FUNDING", Sleep.bind(this), timeout);
+  }
+
+  async run() {
+    await this.testFn(20);
+  }
+}
+
+module.exports = TestVU;

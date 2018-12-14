@@ -6,7 +6,6 @@
   "scripts": {
     "lint": "eslint . --ext .js --max-warnings 0",
     "lint:fix": "eslint . --ext .js --fix",
-    "e2e": "jest --config=\"e2e/jest.config.js\" --forceExit",
     "test": "jest",
     "test:watch": "jest --watch --verbose=false"
   },

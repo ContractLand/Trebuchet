@@ -1,5 +1,4 @@
 const Bottleneck = require("bottleneck");
-const { spawn } = require("child_process");
 const debug = require("debug");
 const { v4: uuid } = require("uuid");
 const fs = require("fs");
@@ -190,40 +189,21 @@ class Manager {
     const logVu = debug(`vu:${id}`);
     const vu = this.vuPicker.getVu();
 
+    // eslint-disable-next-line import/no-dynamic-require, global-require
+    const VirtualUser = require(vu.script);
+
     const start = Date.now();
-    const proc = new Promise((resolve, reject) => {
+    const proc = new Promise(async resolve => {
       const initialState = {
         id,
-        index
+        index,
+        reporter: { reportTransaction: this.processTxReport.bind(this) }
       };
-
-      const virtualUser = spawn("node", [vu.script], {
-        stdio: ["pipe", "pipe", "pipe", "ipc"]
-      });
-
-      virtualUser.stdout.on("data", data => {
-        logVu(`stdout: ${data}`);
-      });
-
-      virtualUser.stderr.on("data", data => {
-        logVu(`stderr: ${data}`);
-      });
-
-      virtualUser.on("close", code => {
-        if (code === 0) {
-          resolve();
-        } else {
-          reject();
-        }
-        logVu(`exited`);
-      });
-
-      // Handle messages from child processes
-      virtualUser.on("message", this.processTxReport.bind(this));
-
-      // Start the child process by sending it initial state
-      virtualUser.send(initialState);
+      const instance = new VirtualUser(initialState);
       logVu(`started`);
+      await instance.run();
+      logVu(`ended`);
+      resolve();
     });
     await proc;
     const end = Date.now();

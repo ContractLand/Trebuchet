@@ -21,7 +21,8 @@ describe("methods", () => {
   beforeEach(() => {
     vu = new VU({
       index,
-      id
+      id,
+      reporter: { reportTransaction: sinon.stub() }
     });
   });
 
@@ -58,15 +59,13 @@ describe("methods", () => {
   });
 
   describe("reportTx", () => {
-    test("should not do anything if not ran as a child process", () => {
-      sinon.stub(process, "send");
+    test("should execute reportTransaction() with the additional data", () => {
       vu.reportTx({ foo: "bar" });
-      expect(process.send.firstCall.args[0]).toEqual({
+      expect(vu.reporter.reportTransaction.args[0][0]).toEqual({
         foo: "bar",
         vu: 1337,
         type: "TX"
       });
-      process.send.restore();
     });
   });
 });
