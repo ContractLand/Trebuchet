@@ -1,5 +1,6 @@
 const Bottleneck = require("bottleneck");
 const debug = require("debug");
+const JSONStream = require("JSONStream");
 const { v4: uuid } = require("uuid");
 const fs = require("fs");
 const { join } = require("path");
@@ -21,6 +22,7 @@ const {
 
 const logStage = debug("manager:test-stage");
 const logTxReport = debug("manager:report:vu-tx");
+const logReporter = debug("manager:reporter");
 
 class Manager {
   constructor({
@@ -58,9 +60,10 @@ class Manager {
     // Reporting states
     this.reporter = reportGenerator;
     this.runningInterval = null;
-    this.txReports = [];
-    this.vuReports = [];
     this.reportPath = reportPath;
+    this.txCount = 0;
+    this.vuCount = 0;
+    this.reporterSetup();
   }
 
   // Internal function to start setup
@@ -76,6 +79,22 @@ class Manager {
     await this.setup();
     this.schedulerSetup();
     this.startRampUp();
+  }
+
+  reporterSetup() {
+    this.tmpDir = tmp.dirSync().name;
+
+    this.txRecordStream = JSONStream.stringify();
+    this.txOutputStream = fs.createWriteStream(
+      join(this.tmpDir, DEFAULT_TX_REPORT_NAME)
+    );
+    this.txRecordStream.pipe(this.txOutputStream);
+
+    this.vuRecordStream = JSONStream.stringify();
+    this.vuOutputStream = fs.createWriteStream(
+      join(this.tmpDir, DEFAULT_VU_REPORT_NAME)
+    );
+    this.vuRecordStream.pipe(this.vuOutputStream);
   }
 
   transitStage(stage) {
@@ -103,8 +122,8 @@ class Manager {
     ==========================================
     VU Concurrency: ${this.vuLimiter.counts().EXECUTING}
     ==========================================
-    VU Executed: ${this.vuReports.length}
-    TX Executed: ${this.txReports.length}
+    TX Executed:  ${this.txCount}
+    VU Executed:  ${this.vuCount}
     `;
     logUpdate(report);
   }
@@ -160,21 +179,38 @@ class Manager {
     this.generateReport();
   }
 
-  generateReport() {
-    const tmpDir = tmp.dirSync().name;
-    const txReportPath = join(tmpDir, DEFAULT_TX_REPORT_NAME);
-    const vuReportPath = join(tmpDir, DEFAULT_VU_REPORT_NAME);
+  async generateReport() {
+    const txReportPath = join(this.tmpDir, DEFAULT_TX_REPORT_NAME);
+    const vuReportPath = join(this.tmpDir, DEFAULT_VU_REPORT_NAME);
 
-    fs.writeFileSync(txReportPath, JSON.stringify(this.txReports, null, 2));
-    fs.writeFileSync(vuReportPath, JSON.stringify(this.vuReports, null, 2));
+    // Wait for TX records to be written to file
+    const txWrite = new Promise(resolve => {
+      this.txOutputStream.on("finish", () => {
+        logReporter(`TX records written to ${txReportPath}`);
+        resolve();
+      });
+      this.txRecordStream.end();
+    });
 
+    // Wait for VU records to be written to file
+    const vuWrite = new Promise(resolve => {
+      this.vuOutputStream.on("finish", () => {
+        logReporter(`VU records written to ${vuReportPath}`);
+        resolve();
+      });
+      this.vuRecordStream.end();
+    });
+
+    await txWrite;
+    await vuWrite;
     this.reporter(vuReportPath, txReportPath, this.reportPath);
     process.exit();
   }
 
   processTxReport(report) {
     logTxReport(report);
-    this.txReports.push(report);
+    this.txCount += 1;
+    this.txRecordStream.write(report);
   }
 
   // Run a virtual user in the queue
@@ -215,7 +251,8 @@ class Manager {
       end,
       duration: end - start
     };
-    this.vuReports.push(vuReport);
+    this.vuCount += 1;
+    this.vuRecordStream.write(vuReport);
   }
 }
 

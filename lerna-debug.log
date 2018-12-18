@@ -1,12 +1,11 @@
-15 error Error: Command failed: git rev-list --left-right --count origin/master...master
-15 error fatal: ambiguous argument 'origin/master...master': unknown revision or path not in the working tree.
-15 error Use '--' to separate paths from revisions, like this:
-15 error 'git <command> [<revision>...] -- [<file>...]'
-15 error
-15 error
-15 error     at makeError (/Users/raymondyeh/Desktop/chain-hive/node_modules/execa/index.js:174:9)
-15 error     at Function.module.exports.sync (/Users/raymondyeh/Desktop/chain-hive/node_modules/execa/index.js:338:15)
-15 error     at Object.execSync (/Users/raymondyeh/Desktop/chain-hive/node_modules/@lerna/child-process/index.js:22:16)
-15 error     at countLeftRight (/Users/raymondyeh/Desktop/chain-hive/node_modules/@lerna/version/lib/is-behind-upstream.js:30:31)
-15 error     at isBehindUpstream (/Users/raymondyeh/Desktop/chain-hive/node_modules/@lerna/version/lib/is-behind-upstream.js:14:27)
-15 error     at VersionCommand.initialize (/Users/raymondyeh/Desktop/chain-hive/node_modules/@lerna/version/index.js:109:7)
+0 silly argv { _: [ 'add' ],
+0 silly argv   scope: 'trebuchet-manager',
+0 silly argv   globs: [],
+0 silly argv   lernaVersion: '3.4.3',
+0 silly argv   '$0': 'lerna',
+0 silly argv   pkg: 'JSONstream' }
+1 notice cli v3.4.3
+2 verbose rootPath /Users/raymondyeh/Desktop/trebuchet
+3 info versioning independent
+4 error Error: 404 Not Found - GET https://registry.npmjs.org/JSONstream - Not found
+4 error     at res.buffer.catch.then.body (/Users/raymondyeh/.nvm/versions/node/v10.11.0/lib/node_modules/lerna/node_modules/npm-registry-fetch/check-response.js:104:15)

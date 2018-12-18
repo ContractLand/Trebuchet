@@ -1,6 +1,7 @@
 const sinon = require("sinon");
 const fs = require("fs");
 const tmp = require("tmp");
+const JSONStream = require("JSONStream");
 const { join } = require("path");
 
 const Manager = require("./manager");
@@ -62,12 +63,46 @@ describe("constructor", () => {
     expect(mgr.rampUpInterval).toBe(null);
     expect(mgr.hardstopTimeout).toBe(null);
     expect(mgr.runningInterval).toBe(null);
-    expect(mgr.txReports).toEqual([]);
-    expect(mgr.vuReports).toEqual([]);
+    expect(mgr.txCount).toEqual(0);
+    expect(mgr.vuCount).toEqual(0);
   });
 
   test("should throw if VU script is not present", () => {
     expect(() => new Manager()).toThrow();
+  });
+
+  test("reporterSetup should setup output streams and transforms for both reports", () => {
+    sinon.stub(JSONStream, "stringify");
+    sinon.stub(fs, "createWriteStream");
+    sinon.stub(tmp, "dirSync");
+
+    const fakeStream = { pipe: sinon.stub() };
+
+    tmp.dirSync.returns({
+      name: "some/random/path"
+    });
+    JSONStream.stringify.returns(fakeStream);
+    fs.createWriteStream.returns("WRITE_STREAM");
+
+    const mgr = new Manager({
+      vuScript: TEST_SCRIPT_VU_PATH,
+      setupScript: TEST_SCRIPT_SETUP_PATH
+    });
+
+    expect(mgr.tmpDir).toBeTruthy();
+    expect(fs.createWriteStream.args).toEqual([
+      ["some/random/path/txReport.json"],
+      ["some/random/path/vuReport.json"]
+    ]);
+    expect(fakeStream.pipe.args).toEqual([["WRITE_STREAM"], ["WRITE_STREAM"]]);
+    expect(mgr.txRecordStream).toEqual(fakeStream);
+    expect(mgr.vuRecordStream).toEqual(fakeStream);
+    expect(mgr.txOutputStream).toBe("WRITE_STREAM");
+    expect(mgr.vuOutputStream).toBe("WRITE_STREAM");
+
+    JSONStream.stringify.restore();
+    fs.createWriteStream.restore();
+    tmp.dirSync.restore();
   });
 });
 
@@ -280,35 +315,30 @@ describe("methods", () => {
   });
 
   describe("generateReport", () => {
-    test("should call reportGenerator the report paths and exit the process", () => {
+    test("should call reportGenerator the report paths and exit the process", async () => {
       sinon.stub(process, "exit");
-      sinon.stub(fs, "writeFileSync");
-      sinon.stub(tmp, "dirSync");
-      tmp.dirSync.returns({ name: "random/path" });
+      mgr.txOutputStream = { on: sinon.stub() };
+      mgr.txRecordStream = { end: sinon.stub() };
 
-      mgr.txReports = [{ foo: "bar" }];
-      mgr.vuReports = [{ bar: "foo" }];
+      mgr.vuOutputStream = { on: sinon.stub() };
+      mgr.vuRecordStream = { end: sinon.stub() };
+
       mgr.reporter = sinon.stub();
 
-      mgr.generateReport();
+      const deferred = mgr.generateReport();
+      expect(mgr.txRecordStream.end.called).toBe(true);
+      expect(mgr.txOutputStream.on.args[0][0]).toBe("finish");
+      mgr.txOutputStream.on.args[0][1]();
 
-      expect(fs.writeFileSync.args[0]).toEqual([
-        "random/path/txReport.json",
-        JSON.stringify(mgr.txReports, null, 2)
-      ]);
-      expect(fs.writeFileSync.args[1]).toEqual([
-        "random/path/vuReport.json",
-        JSON.stringify(mgr.vuReports, null, 2)
-      ]);
-      expect(mgr.reporter.args[0]).toEqual([
-        "random/path/vuReport.json",
-        "random/path/txReport.json",
-        mgr.reportPath
-      ]);
+      expect(mgr.vuRecordStream.end.called).toBe(true);
+      expect(mgr.vuOutputStream.on.args[0][0]).toBe("finish");
+      mgr.vuOutputStream.on.args[0][1]();
+
+      await deferred;
+
+      expect(mgr.reporter.called).toBe(true);
       expect(process.exit.called).toBe(true);
 
-      tmp.dirSync.restore();
-      fs.writeFileSync.restore();
       process.exit.restore();
     });
   });
@@ -316,8 +346,9 @@ describe("methods", () => {
   describe("processTxReport", () => {
     test("should add VU's transaction report to the reports", () => {
       mgr.txReports = [];
+      mgr.txRecordStream.write = sinon.stub();
       mgr.processTxReport({ foo: "bar" });
-      expect(mgr.txReports).toEqual([{ foo: "bar" }]);
+      expect(mgr.txRecordStream.write.args[0]).toEqual([{ foo: "bar" }]);
     });
   });
 
@@ -351,7 +382,7 @@ describe("methods", () => {
       expect(txReport.vu).toBeTruthy();
       expect(txReport.type).toBe("TX");
 
-      expect(mgr.vuReports.length).toBe(1);
+      expect(mgr.vuCount).toBe(1);
     });
 
     test.skip("should log a fail when VU do not exit with 0", () => {});
