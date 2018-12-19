@@ -46,7 +46,6 @@ describe("methods", () => {
       expect(report.start).toBeTruthy();
       expect(report.end).toBeTruthy();
       expect(report.duration).toEqual(report.end - report.start);
-      expect(report.error).toBe(false);
       expect(report.data).toEqual(returnedResults);
       expect(testAsyncFn.args[0]).toEqual([1, 2, 3]);
     });
@@ -64,7 +63,6 @@ describe("methods", () => {
       await expect(failedFn).rejects.toEqual(new Error("Boom!"));
 
       const report = vu.reportFailure.args[0][0];
-      expect(report.error).toEqual(true);
       expect(report.trace).toBeTruthy();
       expect(report.name).toEqual("TestAsyncFn");
       expect(testAsyncFn.args[0]).toEqual([1, 2, 3]);
@@ -77,7 +75,8 @@ describe("methods", () => {
       expect(vu.reporter.reportSuccess.args[0][0]).toEqual({
         foo: "bar",
         vu: 1337,
-        type: "TX"
+        type: "TX",
+        error: false
       });
     });
   });
@@ -88,7 +87,8 @@ describe("methods", () => {
       expect(vu.reporter.reportFailure.args[0][0]).toEqual({
         foo: "bar",
         vu: 1337,
-        type: "TX"
+        type: "TX",
+        error: true
       });
     });
   });

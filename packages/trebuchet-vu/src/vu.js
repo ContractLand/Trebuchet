@@ -21,7 +21,6 @@ class VirtualUser {
         start,
         end,
         duration: end - start,
-        error: false,
         data
       });
       return data;
@@ -32,7 +31,6 @@ class VirtualUser {
         start,
         end,
         duration: end - start,
-        error: true,
         trace: err
       });
       throw err;
@@ -48,7 +46,8 @@ class VirtualUser {
       this.reporter.reportSuccess({
         ...data,
         vu: this.id,
-        type: "TX"
+        type: "TX",
+        error: false
       });
     }
   }
@@ -62,7 +61,8 @@ class VirtualUser {
       this.reporter.reportFailure({
         ...data,
         vu: this.id,
-        type: "TX"
+        type: "TX",
+        error: true
       });
     }
   }
