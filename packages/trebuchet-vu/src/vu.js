@@ -13,26 +13,53 @@ class VirtualUser {
    */
   async txWrapper(name, fn, ...args) {
     const start = Date.now();
-    const data = await fn(...args);
-    const end = Date.now();
-    this.reportTx({
-      name,
-      start,
-      end,
-      duration: end - start,
-      error: false,
-      data
-    });
-    return data;
+    try {
+      const data = await fn(...args);
+      const end = Date.now();
+      this.reportSuccess({
+        name,
+        start,
+        end,
+        duration: end - start,
+        error: false,
+        data
+      });
+      return data;
+    } catch (err) {
+      const end = Date.now();
+      this.reportFailure({
+        name,
+        start,
+        end,
+        duration: end - start,
+        error: true,
+        trace: err
+      });
+      throw err;
+    }
   }
 
   /**
    * Sends a report to manager through pass-in reporter
    * @param  {Object} data - Data to be sent to manager
    */
-  reportTx(data) {
-    if (this.reporter && this.reporter.reportTransaction) {
-      this.reporter.reportTransaction({
+  reportSuccess(data) {
+    if (this.reporter && this.reporter.reportSuccess) {
+      this.reporter.reportSuccess({
+        ...data,
+        vu: this.id,
+        type: "TX"
+      });
+    }
+  }
+
+  /**
+   * Sends an error report to manager through pass-in reporter
+   * @param  {Object} data - Data to be sent to manager
+   */
+  reportFailure(data) {
+    if (this.reporter && this.reporter.reportFailure) {
+      this.reporter.reportFailure({
         ...data,
         vu: this.id,
         type: "TX"
