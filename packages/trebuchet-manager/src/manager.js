@@ -16,9 +16,7 @@ const {
   DEFAULT_ONLINE_REPORTING_PERIOD,
   DEFAULT_REPORT_PATH,
   DEFAULT_TX_REPORT_NAME,
-  DEFAULT_TX_ERROR_REPORT_NAME,
   DEFAULT_VU_REPORT_NAME,
-  DEFAULT_VU_ERROR_REPORT_NAME,
   STAGES
 } = require("./config");
 
@@ -94,23 +92,11 @@ class Manager {
     );
     this.txRecordStream.pipe(this.txOutputStream);
 
-    this.txErrorRecordStream = JSONStream.stringify();
-    this.txErrorOutputStream = fs.createWriteStream(
-      join(this.tmpDir, DEFAULT_TX_ERROR_REPORT_NAME)
-    );
-    this.txErrorRecordStream.pipe(this.txErrorOutputStream);
-
     this.vuRecordStream = JSONStream.stringify();
     this.vuOutputStream = fs.createWriteStream(
       join(this.tmpDir, DEFAULT_VU_REPORT_NAME)
     );
     this.vuRecordStream.pipe(this.vuOutputStream);
-
-    this.vuErrorRecordStream = JSONStream.stringify();
-    this.vuErrorOutputStream = fs.createWriteStream(
-      join(this.tmpDir, DEFAULT_VU_ERROR_REPORT_NAME)
-    );
-    this.vuErrorRecordStream.pipe(this.vuErrorOutputStream);
   }
 
   transitStage(stage) {
@@ -198,8 +184,6 @@ class Manager {
   async generateReport() {
     const txReportPath = join(this.tmpDir, DEFAULT_TX_REPORT_NAME);
     const vuReportPath = join(this.tmpDir, DEFAULT_VU_REPORT_NAME);
-    const txErrorReportPath = join(this.tmpDir, DEFAULT_TX_ERROR_REPORT_NAME);
-    const vuErrorReportPath = join(this.tmpDir, DEFAULT_VU_ERROR_REPORT_NAME);
 
     // Wait for TX records to be written to file
     const txWrite = new Promise(resolve => {
@@ -219,30 +203,8 @@ class Manager {
       this.vuRecordStream.end();
     });
 
-    // Wait for TX error records to be written to file
-    const txErrorWrite = new Promise(resolve => {
-      this.txErrorOutputStream.on("finish", () => {
-        logReporter(`TX error records written to ${txErrorReportPath}`);
-        resolve();
-      });
-      this.txErrorRecordStream.end();
-    });
-
-    // Wait for VU error records to be written to file
-    const vuErrorWrite = new Promise(resolve => {
-      this.vuErrorOutputStream.on("finish", () => {
-        logReporter(`VU error records written to ${vuErrorReportPath}`);
-        resolve();
-      });
-      this.vuErrorRecordStream.end();
-    });
-
     await txWrite;
     await vuWrite;
-    await txErrorWrite;
-    await vuErrorWrite;
-
-    console.log(vuReportPath);
 
     this.reporter(vuReportPath, txReportPath, this.reportPath);
     process.exit();
@@ -255,10 +217,10 @@ class Manager {
   }
 
   processFailureTxReport(report) {
-    // logTxReport(report);
+    logTxReport(report);
     this.txCount += 1;
     this.txErrorCount += 1;
-    this.txErrorRecordStream.write(report);
+    this.txRecordStream.write(report);
   }
 
   // Run a virtual user in the queue
@@ -324,7 +286,7 @@ class Manager {
       };
       this.vuCount += 1;
       this.vuErrorCount += 1;
-      this.vuErrorRecordStream.write(vuReport);
+      this.vuRecordStream.write(vuReport);
     }
   }
 }
