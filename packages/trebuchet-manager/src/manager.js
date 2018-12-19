@@ -16,7 +16,9 @@ const {
   DEFAULT_ONLINE_REPORTING_PERIOD,
   DEFAULT_REPORT_PATH,
   DEFAULT_TX_REPORT_NAME,
+  DEFAULT_TX_ERROR_REPORT_NAME,
   DEFAULT_VU_REPORT_NAME,
+  DEFAULT_VU_ERROR_REPORT_NAME,
   STAGES
 } = require("./config");
 
@@ -62,7 +64,9 @@ class Manager {
     this.runningInterval = null;
     this.reportPath = reportPath;
     this.txCount = 0;
+    this.txErrorCount = 0;
     this.vuCount = 0;
+    this.vuErrorCount = 0;
     this.reporterSetup();
   }
 
@@ -90,11 +94,23 @@ class Manager {
     );
     this.txRecordStream.pipe(this.txOutputStream);
 
+    this.txErrorRecordStream = JSONStream.stringify();
+    this.txErrorOutputStream = fs.createWriteStream(
+      join(this.tmpDir, DEFAULT_TX_ERROR_REPORT_NAME)
+    );
+    this.txErrorRecordStream.pipe(this.txErrorOutputStream);
+
     this.vuRecordStream = JSONStream.stringify();
     this.vuOutputStream = fs.createWriteStream(
       join(this.tmpDir, DEFAULT_VU_REPORT_NAME)
     );
     this.vuRecordStream.pipe(this.vuOutputStream);
+
+    this.vuErrorRecordStream = JSONStream.stringify();
+    this.vuErrorOutputStream = fs.createWriteStream(
+      join(this.tmpDir, DEFAULT_VU_ERROR_REPORT_NAME)
+    );
+    this.vuErrorRecordStream.pipe(this.vuErrorOutputStream);
   }
 
   transitStage(stage) {
@@ -182,6 +198,8 @@ class Manager {
   async generateReport() {
     const txReportPath = join(this.tmpDir, DEFAULT_TX_REPORT_NAME);
     const vuReportPath = join(this.tmpDir, DEFAULT_VU_REPORT_NAME);
+    const txErrorReportPath = join(this.tmpDir, DEFAULT_TX_ERROR_REPORT_NAME);
+    const vuErrorReportPath = join(this.tmpDir, DEFAULT_VU_ERROR_REPORT_NAME);
 
     // Wait for TX records to be written to file
     const txWrite = new Promise(resolve => {
@@ -201,16 +219,46 @@ class Manager {
       this.vuRecordStream.end();
     });
 
+    // Wait for TX error records to be written to file
+    const txErrorWrite = new Promise(resolve => {
+      this.txErrorOutputStream.on("finish", () => {
+        logReporter(`TX error records written to ${txErrorReportPath}`);
+        resolve();
+      });
+      this.txErrorRecordStream.end();
+    });
+
+    // Wait for VU error records to be written to file
+    const vuErrorWrite = new Promise(resolve => {
+      this.vuErrorOutputStream.on("finish", () => {
+        logReporter(`VU error records written to ${vuErrorReportPath}`);
+        resolve();
+      });
+      this.vuErrorRecordStream.end();
+    });
+
     await txWrite;
     await vuWrite;
+    await txErrorWrite;
+    await vuErrorWrite;
+
+    console.log(vuReportPath);
+
     this.reporter(vuReportPath, txReportPath, this.reportPath);
     process.exit();
   }
 
-  processTxReport(report) {
+  processSuccessTxReport(report) {
     logTxReport(report);
     this.txCount += 1;
     this.txRecordStream.write(report);
+  }
+
+  processFailureTxReport(report) {
+    // logTxReport(report);
+    this.txCount += 1;
+    this.txErrorCount += 1;
+    this.txErrorRecordStream.write(report);
   }
 
   // Run a virtual user in the queue
@@ -229,30 +277,55 @@ class Manager {
     const VirtualUser = require(vu.script);
 
     const start = Date.now();
-    const proc = new Promise(async resolve => {
+    const proc = new Promise(async (resolve, reject) => {
       const initialState = {
         id,
         index,
-        reporter: { reportTransaction: this.processTxReport.bind(this) }
+        reporter: {
+          reportSuccess: this.processSuccessTxReport.bind(this),
+          reportFailure: this.processFailureTxReport.bind(this)
+        }
       };
-      const instance = new VirtualUser(initialState);
-      logVu(`started`);
-      await instance.run();
-      logVu(`ended`);
-      resolve();
+      try {
+        const instance = new VirtualUser(initialState);
+        logVu(`started`);
+        await instance.run();
+        logVu(`ended`);
+        resolve();
+      } catch (e) {
+        reject(e);
+      }
     });
-    await proc;
-    const end = Date.now();
-    const vuReport = {
-      type: "VU",
-      name: vu.name,
-      vu: id,
-      start,
-      end,
-      duration: end - start
-    };
-    this.vuCount += 1;
-    this.vuRecordStream.write(vuReport);
+    try {
+      await proc;
+      const end = Date.now();
+      const vuReport = {
+        type: "VU",
+        name: vu.name,
+        vu: id,
+        start,
+        end,
+        duration: end - start,
+        error: false
+      };
+      this.vuCount += 1;
+      this.vuRecordStream.write(vuReport);
+    } catch (e) {
+      const end = Date.now();
+      const vuReport = {
+        type: "VU",
+        name: vu.name,
+        vu: id,
+        start,
+        end,
+        duration: end - start,
+        error: true,
+        trace: e
+      };
+      this.vuCount += 1;
+      this.vuErrorCount += 1;
+      this.vuErrorRecordStream.write(vuReport);
+    }
   }
 }
 

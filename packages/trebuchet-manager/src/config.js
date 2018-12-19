@@ -8,7 +8,9 @@ module.exports = {
   DEFAULT_ONLINE_REPORTING_PERIOD: 1000,
   DEFAULT_REPORT_PATH: join(__dirname, "../load_test_report"),
   DEFAULT_TX_REPORT_NAME: "txReport.json",
+  DEFAULT_TX_ERROR_REPORT_NAME: "txErrorReport.json",
   DEFAULT_VU_REPORT_NAME: "vuReport.json",
+  DEFAULT_VU_ERROR_REPORT_NAME: "vuErrorReport.json",
   STAGES: {
     INIT: "INIT",
     RAMP_UP: "RAMP_UP",

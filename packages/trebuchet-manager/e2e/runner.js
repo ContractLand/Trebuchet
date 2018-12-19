@@ -3,7 +3,7 @@ const Manager = require("../src/manager");
 
 const SETUP_SCRIPT = join(__dirname, "./fixtures/setup.js");
 const VU_SCRIPT = join(__dirname, "./fixtures/vu.js");
-const VU_SCRIPT_2 = join(__dirname, "./fixtures/vu2.js");
+const VU_SCRIPT_2 = join(__dirname, "./fixtures/vu3.js");
 
 const rampPeriod = 100;
 const concurrency = 2;
