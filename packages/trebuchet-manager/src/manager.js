@@ -127,6 +127,9 @@ class Manager {
     ==========================================
     TX Executed:  ${this.txCount}
     VU Executed:  ${this.vuCount}
+    ==========================================
+    TX Error:  ${this.txErrorCount}
+    VU Error:  ${this.vuErrorCount}
     `;
     logUpdate(report);
   }
