@@ -1,6 +1,6 @@
 {
   "name": "trebuchet-manager",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "description": "",
   "main": "src/index.js",
   "scripts": {
@@ -23,7 +23,7 @@
     "serialize-error": "^3.0.0",
     "tmp": "^0.0.33",
     "trebuchet-bootstrap": "^0.0.2",
-    "trebuchet-report-template": "^0.0.7",
+    "trebuchet-report-template": "^0.0.8",
     "trebuchet-vu": "^0.0.6",
     "uuid": "^3.3.2"
   },
