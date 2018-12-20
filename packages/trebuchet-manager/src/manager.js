@@ -7,6 +7,7 @@ const { join } = require("path");
 const tmp = require("tmp");
 const logUpdate = require("log-update");
 const reportGenerator = require("trebuchet-report-template");
+const serializeError = require("serialize-error");
 const VuPicker = require("./vuPicker");
 const {
   DEFAULT_RAMP_PERIOD,
@@ -62,7 +63,9 @@ class Manager {
     this.runningInterval = null;
     this.reportPath = reportPath;
     this.txCount = 0;
+    this.txErrorCount = 0;
     this.vuCount = 0;
+    this.vuErrorCount = 0;
     this.reporterSetup();
   }
 
@@ -124,6 +127,9 @@ class Manager {
     ==========================================
     TX Executed:  ${this.txCount}
     VU Executed:  ${this.vuCount}
+    ==========================================
+    TX Error:  ${this.txErrorCount}
+    VU Error:  ${this.vuErrorCount}
     `;
     logUpdate(report);
   }
@@ -203,6 +209,7 @@ class Manager {
 
     await txWrite;
     await vuWrite;
+
     this.reporter(vuReportPath, txReportPath, this.reportPath);
     process.exit();
   }
@@ -211,6 +218,11 @@ class Manager {
     logTxReport(report);
     this.txCount += 1;
     this.txRecordStream.write(report);
+  }
+
+  processFailureTxReport(report) {
+    this.processTxReport(report);
+    this.txErrorCount += 1;
   }
 
   // Run a virtual user in the queue
@@ -229,30 +241,55 @@ class Manager {
     const VirtualUser = require(vu.script);
 
     const start = Date.now();
-    const proc = new Promise(async resolve => {
+    const proc = new Promise(async (resolve, reject) => {
       const initialState = {
         id,
         index,
-        reporter: { reportTransaction: this.processTxReport.bind(this) }
+        reporter: {
+          reportSuccess: this.processTxReport.bind(this),
+          reportFailure: this.processFailureTxReport.bind(this)
+        }
       };
-      const instance = new VirtualUser(initialState);
-      logVu(`started`);
-      await instance.run();
-      logVu(`ended`);
-      resolve();
+      try {
+        const instance = new VirtualUser(initialState);
+        logVu(`started`);
+        await instance.run();
+        logVu(`ended`);
+        resolve();
+      } catch (e) {
+        reject(e);
+      }
     });
-    await proc;
-    const end = Date.now();
-    const vuReport = {
-      type: "VU",
-      name: vu.name,
-      vu: id,
-      start,
-      end,
-      duration: end - start
-    };
-    this.vuCount += 1;
-    this.vuRecordStream.write(vuReport);
+    try {
+      await proc;
+      const end = Date.now();
+      const vuReport = {
+        type: "VU",
+        name: vu.name,
+        vu: id,
+        start,
+        end,
+        duration: end - start,
+        error: false
+      };
+      this.vuCount += 1;
+      this.vuRecordStream.write(vuReport);
+    } catch (err) {
+      const end = Date.now();
+      const vuReport = {
+        type: "VU",
+        name: vu.name,
+        vu: id,
+        start,
+        end,
+        duration: end - start,
+        error: true,
+        trace: serializeError(err)
+      };
+      this.vuCount += 1;
+      this.vuErrorCount += 1;
+      this.vuRecordStream.write(vuReport);
+    }
   }
 }
 
