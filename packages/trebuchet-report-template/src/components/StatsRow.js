@@ -1,40 +1,30 @@
 import PropTypes from "prop-types";
-import { meanBy, maxBy, minBy } from "lodash";
+import { meanBy, maxBy, minBy, countBy } from "lodash";
 
 const numBlock = (header, num) => (
-  <div className="col">
-    <div className="h6">{header}</div>
+  <div className="col mt-4">
+    <div className="h6" style={{ minHeight: "2em" }}>
+      {header}
+    </div>
     <div className="h2">{num}</div>
   </div>
 );
 
 const StatsRow = ({ report, concurrencyReport }) => (
   <div className="row" id="vu-section">
-    <div className="col-2 text-center">
-      <div className="h5 my-3">Executed</div>
-      {numBlock("Total", report.length)}
-    </div>
-    <div className="col-4 text-center">
-      <div className="h5 my-3">Concurrency</div>
-      <div className="row">
-        {numBlock(
-          "Avg Concurrency",
-          meanBy(concurrencyReport, "concurrency").toFixed(2)
-        )}
-        {numBlock(
-          "Max Concurrency",
-          maxBy(concurrencyReport, "concurrency").concurrency
-        )}
-      </div>
-    </div>
-    <div className="col-6 text-center">
-      <div className="h5 my-3">Execution Time</div>
-      <div className="row">
-        {numBlock("Avg (ms)", meanBy(report, "duration").toFixed(2))}
-        {numBlock("Longest (ms)", maxBy(report, "duration").duration)}
-        {numBlock("Shortest (ms)", minBy(report, "duration").duration)}
-      </div>
-    </div>
+    {numBlock("Total Executed", report.length)}
+    {numBlock("Errors", countBy(report, "error").true || 0)}
+    {numBlock(
+      "Avg Concurrency",
+      meanBy(concurrencyReport, "concurrency").toFixed(2)
+    )}
+    {numBlock(
+      "Max Concurrency",
+      maxBy(concurrencyReport, "concurrency").concurrency
+    )}
+    {numBlock("Avg Time (ms)", meanBy(report, "duration").toFixed(2))}
+    {numBlock("Longest Time (ms)", maxBy(report, "duration").duration)}
+    {numBlock("Shortest Time (ms)", minBy(report, "duration").duration)}
   </div>
 );
 
