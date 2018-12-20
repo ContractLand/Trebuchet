@@ -7,6 +7,7 @@ const { join } = require("path");
 const tmp = require("tmp");
 const logUpdate = require("log-update");
 const reportGenerator = require("trebuchet-report-template");
+const serializeError = require("serialize-error");
 const VuPicker = require("./vuPicker");
 const {
   DEFAULT_RAMP_PERIOD,
@@ -270,7 +271,7 @@ class Manager {
       };
       this.vuCount += 1;
       this.vuRecordStream.write(vuReport);
-    } catch (e) {
+    } catch (err) {
       const end = Date.now();
       const vuReport = {
         type: "VU",
@@ -280,7 +281,7 @@ class Manager {
         end,
         duration: end - start,
         error: true,
-        trace: e
+        trace: serializeError(err)
       };
       this.vuCount += 1;
       this.vuErrorCount += 1;

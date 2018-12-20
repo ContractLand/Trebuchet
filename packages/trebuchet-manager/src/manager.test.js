@@ -422,7 +422,7 @@ describe("methods", () => {
       expect(txErrReport.vu).toBeTruthy();
       expect(txErrReport.type).toBe("TX");
       expect(txErrReport.error).toBe(true);
-      expect(txErrReport.trace).toEqual(new Error("DIED"));
+      expect(txErrReport.trace.message).toEqual("DIED");
 
       // Log vu error
       expect(mgr.vuErrorCount).toBe(1);
@@ -434,7 +434,7 @@ describe("methods", () => {
       expect(vuErrorReport.end).toBe(20);
       expect(vuErrorReport.duration).toBe(20);
       expect(vuErrorReport.error).toBe(true);
-      expect(vuErrorReport.trace).toEqual(new Error("DIED"));
+      expect(vuErrorReport.trace.message).toEqual("DIED");
     });
 
     test("should use vu's logger to log transaction", async () => {

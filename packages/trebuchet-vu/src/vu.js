@@ -1,3 +1,5 @@
+const serializeError = require("serialize-error");
+
 class VirtualUser {
   constructor({ index, id, reporter }) {
     this.id = id;
@@ -31,7 +33,7 @@ class VirtualUser {
         start,
         end,
         duration: end - start,
-        trace: err
+        trace: serializeError(err)
       });
       throw err;
     }
