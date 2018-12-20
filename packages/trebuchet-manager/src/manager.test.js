@@ -16,6 +16,10 @@ const {
 } = require("./config");
 
 const TEST_SCRIPT_VU_PATH = join(__dirname, "../test/fixture/vu.js");
+const TEST_SCRIPT_VU_FAILURE_PATH = join(
+  __dirname,
+  "../test/fixture/vuFailure.js"
+);
 const TEST_SCRIPT_SETUP_PATH = join(__dirname, "../test/fixture/setup.js");
 
 describe("constructor", () => {
@@ -344,11 +348,20 @@ describe("methods", () => {
   });
 
   describe("processTxReport", () => {
-    test("should add VU's transaction report to the reports", () => {
-      mgr.txReports = [];
+    test("should add VU's transaction report to the TX stream", () => {
       mgr.txRecordStream.write = sinon.stub();
       mgr.processTxReport({ foo: "bar" });
+      expect(mgr.txCount).toBe(1);
       expect(mgr.txRecordStream.write.args[0]).toEqual([{ foo: "bar" }]);
+    });
+  });
+
+  describe("processFailureTxReport", () => {
+    test("should call processTxReport and add a error count", () => {
+      mgr.processTxReport = sinon.stub();
+      mgr.processFailureTxReport({ foo: "bar" });
+      expect(mgr.txErrorCount).toBe(1);
+      expect(mgr.processTxReport.args[0]).toEqual([{ foo: "bar" }]);
     });
   });
 
@@ -385,8 +398,78 @@ describe("methods", () => {
       expect(mgr.vuCount).toBe(1);
     });
 
-    test.skip("should log a fail when VU do not exit with 0", () => {});
+    test("should log a fail when VU throws an error", async () => {
+      mgr = new Manager({
+        vuScript: TEST_SCRIPT_VU_FAILURE_PATH,
+        setupScript: TEST_SCRIPT_SETUP_PATH
+      });
+      mgr.processTxReport = sinon.stub();
+      mgr.processFailureTxReport = sinon.stub();
+      mgr.vuRecordStream = { write: sinon.stub() };
 
-    test.skip("should use vu's logger to log transaction", () => {});
+      const deferred = mgr.runVirtualUser();
+      clock.tick(20);
+      await deferred;
+
+      expect(mgr.processTxReport.called).toBe(false);
+
+      // Log transaction error
+      const txErrReport = mgr.processFailureTxReport.args[0][0];
+      expect(txErrReport.name).toBe("FUNDING");
+      expect(txErrReport.start).toBe(0);
+      expect(txErrReport.end).toBe(20);
+      expect(txErrReport.duration).toBe(20);
+      expect(txErrReport.vu).toBeTruthy();
+      expect(txErrReport.type).toBe("TX");
+      expect(txErrReport.error).toBe(true);
+      expect(txErrReport.trace).toEqual(new Error("DIED"));
+
+      // Log vu error
+      expect(mgr.vuErrorCount).toBe(1);
+      const vuErrorReport = mgr.vuRecordStream.write.args[0][0];
+      expect(vuErrorReport.type).toBe("VU");
+      expect(vuErrorReport.vu).toBeTruthy();
+      expect(vuErrorReport.name).toBe("DEFAULT_VU");
+      expect(vuErrorReport.start).toBe(0);
+      expect(vuErrorReport.end).toBe(20);
+      expect(vuErrorReport.duration).toBe(20);
+      expect(vuErrorReport.error).toBe(true);
+      expect(vuErrorReport.trace).toEqual(new Error("DIED"));
+    });
+
+    test("should use vu's logger to log transaction", async () => {
+      mgr.vuIndex = 5;
+      mgr.processTxReport = sinon.stub();
+      mgr.vuRecordStream = { write: sinon.stub() };
+      mgr.processFailureTxReport = sinon.stub();
+
+      const deferred = mgr.runVirtualUser();
+      clock.tick(20);
+      await deferred;
+
+      expect(mgr.vuCount).toBe(1);
+      expect(mgr.vuErrorCount).toBe(0);
+      expect(mgr.processFailureTxReport.called).toBe(false);
+
+      // Log tx report
+      const txReport = mgr.processTxReport.args[0][0];
+      expect(txReport.name).toBe("FUNDING");
+      expect(txReport.start).toBe(0);
+      expect(txReport.end).toBe(20);
+      expect(txReport.duration).toBe(20);
+      expect(txReport.vu).toBeTruthy();
+      expect(txReport.type).toBe("TX");
+      expect(txReport.error).toBe(false);
+
+      // Log vu report
+      const vuErrorReport = mgr.vuRecordStream.write.args[0][0];
+      expect(vuErrorReport.type).toBe("VU");
+      expect(vuErrorReport.vu).toBeTruthy();
+      expect(vuErrorReport.name).toBe("DEFAULT_VU");
+      expect(vuErrorReport.start).toBe(0);
+      expect(vuErrorReport.end).toBe(20);
+      expect(vuErrorReport.duration).toBe(20);
+      expect(vuErrorReport.error).toBe(false);
+    });
   });
 });

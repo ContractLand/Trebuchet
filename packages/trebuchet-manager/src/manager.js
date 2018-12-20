@@ -210,17 +210,15 @@ class Manager {
     process.exit();
   }
 
-  processSuccessTxReport(report) {
+  processTxReport(report) {
     logTxReport(report);
     this.txCount += 1;
     this.txRecordStream.write(report);
   }
 
   processFailureTxReport(report) {
-    logTxReport(report);
-    this.txCount += 1;
+    this.processTxReport(report);
     this.txErrorCount += 1;
-    this.txRecordStream.write(report);
   }
 
   // Run a virtual user in the queue
@@ -244,7 +242,7 @@ class Manager {
         id,
         index,
         reporter: {
-          reportSuccess: this.processSuccessTxReport.bind(this),
+          reportSuccess: this.processTxReport.bind(this),
           reportFailure: this.processFailureTxReport.bind(this)
         }
       };
