@@ -1,4 +1,7 @@
 const serializeError = require("serialize-error");
+const stringify = require("json-stringify-safe");
+
+const removeCircular = data => JSON.parse(stringify(data));
 
 class VirtualUser {
   constructor({ index, id, reporter }) {
@@ -23,7 +26,7 @@ class VirtualUser {
         start,
         end,
         duration: end - start,
-        data
+        data: removeCircular(data)
       });
       return data;
     } catch (err) {
